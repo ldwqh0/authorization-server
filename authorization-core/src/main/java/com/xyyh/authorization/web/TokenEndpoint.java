@@ -16,16 +16,16 @@ import java.util.Map;
 public class TokenEndpoint {
 
     @GetMapping
-    public ResponseEntity getAccessToken(Principal principal,
-                                         @RequestParam Map<String, String> parameters) {
+    public ResponseEntity getAccessToken(
+        Principal principal,
+        @RequestParam Map<String, String> parameters) {
         return postAccessToken(principal, parameters);
     }
 
     @PostMapping
-    public ResponseEntity postAccessToken(Principal principal,
-                                          @RequestParam Map<String, String> parameters) {
+    public ResponseEntity postAccessToken(
+        Principal principal,
+        @RequestParam Map<String, String> parameters) {
         return ResponseEntity.ok().build();
     }
-
-
 }
