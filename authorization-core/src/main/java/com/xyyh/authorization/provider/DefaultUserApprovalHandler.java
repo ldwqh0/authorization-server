@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 import com.xyyh.authorization.core.ApprovalResult;
-import com.xyyh.authorization.web.AuthorizationRequest;
 
 /**
  * 默认的授权处理器
@@ -20,8 +20,8 @@ public class DefaultUserApprovalHandler implements UserApprovalHandler {
     private String scopePrefix = "scope.";
 
     @Override
-    public ApprovalResult approval(AuthorizationRequest request, Map<String, String> approvalParameters) {
-        Set<String> requestScopes = request.getScope();
+    public ApprovalResult approval(OAuth2AuthorizationRequest request, Map<String, String> approvalParameters) {
+        Set<String> requestScopes = request.getScopes();
         Set<String> approvedScopes = new HashSet<String>(); // 授权允许的scope
         for (String requestScope : requestScopes) {
             String approvalValue = approvalParameters.get(scopePrefix + requestScope);
@@ -31,6 +31,7 @@ public class DefaultUserApprovalHandler implements UserApprovalHandler {
         }
         DefaultApprovalResult result = new DefaultApprovalResult();
         result.setClientId(request.getClientId());
+        result.setRedirectUri(request.getRedirectUri());
         if (CollectionUtils.isNotEmpty(approvedScopes)) {
             result.setApprovaled(true);
             result.setScope(approvedScopes);

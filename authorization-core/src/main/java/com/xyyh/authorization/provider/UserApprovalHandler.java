@@ -2,11 +2,12 @@ package com.xyyh.authorization.provider;
 
 import java.util.Map;
 
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+
 import com.xyyh.authorization.core.ApprovalResult;
-import com.xyyh.authorization.web.AuthorizationRequest;
 
 public interface UserApprovalHandler {
 
-    ApprovalResult approval(AuthorizationRequest request, Map<String, String> approvalParameters);
+    ApprovalResult approval(OAuth2AuthorizationRequest request, Map<String, String> approvalParameters);
 
 }

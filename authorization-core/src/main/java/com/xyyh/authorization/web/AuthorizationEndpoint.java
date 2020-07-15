@@ -6,6 +6,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
@@ -27,14 +30,17 @@ import com.xyyh.authorization.provider.UserApprovalHandler;
 
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+
+import static org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType.*;
 
 @RequestMapping("/oauth/authorize")
 @SessionAttributes({ "authorizationRequest" })
 public class AuthorizationEndpoint implements InitializingBean {
 
-    private static final String authorizationRequest = "authorizationRequest";
+//    private static final String authorizationRequest = "authorizationRequest";
 
     private ClientDetailsService clientDetailsService;
 
@@ -78,7 +84,8 @@ public class AuthorizationEndpoint implements InitializingBean {
             SessionStatus sessionStatus,
             Principal principal) {
         // 创建授权请求
-        AuthorizationRequest authorizationRequest = AuthorizationRequest.createRequest(params);
+//        OAuth2AuthorizationRequest;
+        OAuth2AuthorizationRequest authorizationRequest = createRequest(params);
         // 加载client信息
         ClientDetails client = clientDetailsService.loadClientByClientId(authorizationRequest.getClientId());
         // 验证scope
@@ -109,7 +116,7 @@ public class AuthorizationEndpoint implements InitializingBean {
             Map<String, ?> model,
             SessionStatus sessionStatus,
             Principal principal) {
-        AuthorizationRequest request = (AuthorizationRequest) model.get("authorizationRequest");
+        OAuth2AuthorizationRequest request = (OAuth2AuthorizationRequest) model.get("authorizationRequest");
 
         // 获取用户授权结果
         ApprovalResult result = userApprovalHandler.approval(request, approvalParameters);
@@ -117,11 +124,11 @@ public class AuthorizationEndpoint implements InitializingBean {
         /**
          * 如果授权通过
          */
-        String responseType = request.getResponseType();
+        OAuth2AuthorizationResponseType responseType = request.getResponseType();
         if (result.isApprovaled()) {
-            if ("code".equals(responseType)) {
+            if (CODE.equals(responseType)) {
                 return getAuthorizationCodeResponse(request, result, (Authentication) principal);
-            } else if ("token".equals(responseType)) {
+            } else if (TOKEN.equals(responseType)) {
                 return getImplicitGrantResponse(request, result, principal);
             }
         } else {
@@ -138,7 +145,7 @@ public class AuthorizationEndpoint implements InitializingBean {
      * @param principal 授权用户
      * @return
      */
-    private View getImplicitGrantResponse(AuthorizationRequest request, ApprovalResult result, Principal principal) {
+    private View getImplicitGrantResponse(OAuth2AuthorizationRequest request, ApprovalResult result, Principal principal) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -150,7 +157,7 @@ public class AuthorizationEndpoint implements InitializingBean {
      * @return
      */
     private View getAuthorizationCodeResponse(
-            AuthorizationRequest request,
+            OAuth2AuthorizationRequest request,
             ApprovalResult result,
             Authentication principal) {
         Map<String, String> query = new HashMap<>();
@@ -171,7 +178,7 @@ public class AuthorizationEndpoint implements InitializingBean {
      * @param client
      * @return
      */
-    private boolean preCheck(AuthorizationRequest authorizationRequest, ClientDetails client) {
+    private boolean preCheck(OAuth2AuthorizationRequest authorizationRequest, ClientDetails client) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -209,5 +216,24 @@ public class AuthorizationEndpoint implements InitializingBean {
         if (Objects.isNull(authorizationCodeService)) {
             authorizationCodeService = new InMemoryAuthorizationCodeService();
         }
+    }
+
+    private OAuth2AuthorizationRequest createRequest(MultiValueMap<String, String> parameters) {
+        Map<String, Object> additionalParameters = new HashMap<String, Object>();
+        parameters.entrySet().stream()
+                .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
+                        !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
+                        !e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI) &&
+                        !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
+                        !e.getKey().equals(OAuth2ParameterNames.STATE))
+                .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
+        return OAuth2AuthorizationRequest.authorizationCode()
+//                .authorizationUri(request.getRequestURL().toString())
+                .clientId(parameters.getFirst(OAuth2ParameterNames.CLIENT_ID))
+                .redirectUri(parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI))
+                .scopes(new HashSet<>(parameters.get(OAuth2ParameterNames.SCOPE)))
+                .state(parameters.getFirst(OAuth2ParameterNames.STATE))
+                .additionalParameters(additionalParameters)
+                .build();
     }
 }

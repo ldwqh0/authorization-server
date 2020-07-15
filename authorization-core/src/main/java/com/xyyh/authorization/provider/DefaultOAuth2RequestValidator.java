@@ -3,18 +3,18 @@ package com.xyyh.authorization.provider;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.exception.InvalidScopeException;
 import com.xyyh.authorization.token.request.TokenRequest;
-import com.xyyh.authorization.web.AuthorizationRequest;
 
 public class DefaultOAuth2RequestValidator implements OAuth2RequestValidator {
 
     @Override
-    public void validateScope(AuthorizationRequest authorizationRequest, ClientDetails client)
+    public void validateScope(OAuth2AuthorizationRequest authorizationRequest, ClientDetails client)
             throws InvalidScopeException {
-        validateScope(authorizationRequest.getScope(), client.getScope());
+        validateScope(authorizationRequest.getScopes(), client.getScope());
 
     }
 
