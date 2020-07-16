@@ -16,7 +16,7 @@
 		<input type="hidden" th:name="${_csrf.parameterName}"
 			th:value="${_csrf.token}" />
 		<ul>
-			<li th:each="scope:${authorizationRequest.scope}">
+			<li th:each="scope:${authorizationRequest.scopes}">
 				<div class="form-group">
 					<span th:text="${scope}"></span> <input type="radio"
 						th:name="${'scope.'+scope}" value="true">允许 <input

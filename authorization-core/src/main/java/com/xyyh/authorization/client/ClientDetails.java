@@ -25,4 +25,7 @@ public interface ClientDetails extends Serializable {
      * @return
      */
     public Set<String> getScope();
+    
+    
+    
 }

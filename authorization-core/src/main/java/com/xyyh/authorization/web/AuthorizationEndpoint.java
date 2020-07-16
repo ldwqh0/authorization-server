@@ -2,11 +2,12 @@ package com.xyyh.authorization.web;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest.Builder;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.MultiValueMap;
@@ -17,57 +18,56 @@ import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.google.common.collect.Sets;
 import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.core.ApprovalResult;
-import com.xyyh.authorization.core.OAuth2Authentication;
-import com.xyyh.authorization.provider.AuthorizationCodeService;
+import com.xyyh.authorization.core.OAuth2AccessTokenAuthentication;
+import com.xyyh.authorization.core.OAuth2ApprovalAuthenticationToken;
+import com.xyyh.authorization.provider.OAuth2AuthorizationCodeService;
 import com.xyyh.authorization.provider.DefaultOAuth2RequestValidator;
 import com.xyyh.authorization.provider.DefaultUserApprovalHandler;
-import com.xyyh.authorization.provider.InMemoryAuthorizationCodeService;
+import com.xyyh.authorization.provider.OAuth2AccessTokenGenerator;
+import com.xyyh.authorization.provider.OAuth2AccessTokenService;
 import com.xyyh.authorization.provider.OAuth2RequestValidator;
 import com.xyyh.authorization.provider.UserApprovalHandler;
 
-import java.security.Principal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
 
 import static org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType.*;
 
 @RequestMapping("/oauth/authorize")
 @SessionAttributes({ "authorizationRequest" })
-public class AuthorizationEndpoint implements InitializingBean {
+public class AuthorizationEndpoint {
 
-//    private static final String authorizationRequest = "authorizationRequest";
+    private static final String OAUTH2_AUTHORIZATION_REQUEST = "authorizationRequest";
+    private static final String SPACE = " ";
 
+    @Autowired
     private ClientDetailsService clientDetailsService;
 
-    private OAuth2RequestValidator oAuth2RequestValidator;
-
-    private UserApprovalHandler userApprovalHandler;
-
-    private AuthorizationCodeService authorizationCodeService;
-
-    public void setClientDetailsService(ClientDetailsService clientDetailsService) {
-        this.clientDetailsService = clientDetailsService;
-    }
+    @Autowired(required = false)
+    private OAuth2RequestValidator oAuth2RequestValidator = new DefaultOAuth2RequestValidator();
 
     @Autowired(required = false)
-    public void setRequestValidator(OAuth2RequestValidator oAuth2RequestValidator) {
-        this.oAuth2RequestValidator = oAuth2RequestValidator;
-    }
+    private UserApprovalHandler userApprovalHandler = new DefaultUserApprovalHandler();
 
-    @Autowired(required = false)
-    public void setUserApprovalHandler(UserApprovalHandler userApprovalHandler) {
-        this.userApprovalHandler = userApprovalHandler;
-    }
+    @Autowired
+    private OAuth2AuthorizationCodeService authorizationCodeService;
 
-    @Autowired(required = false)
-    public void setAuthorizationCodeService(AuthorizationCodeService authorizationCodeService) {
-        this.authorizationCodeService = authorizationCodeService;
-    }
+    @Autowired
+    private OAuth2AccessTokenGenerator accessTokenGenerator;
+
+    @Autowired
+    private OAuth2AccessTokenService accessTokenService;
 
     /**
      * 返回授权页面
@@ -79,13 +79,12 @@ public class AuthorizationEndpoint implements InitializingBean {
      */
     @GetMapping
     public ModelAndView authorize(
+            HttpServletRequest request,
             Map<String, Object> model,
             @RequestParam MultiValueMap<String, String> params,
             SessionStatus sessionStatus,
-            Principal principal) {
-        // 创建授权请求
-//        OAuth2AuthorizationRequest;
-        OAuth2AuthorizationRequest authorizationRequest = createRequest(params);
+            Authentication principal) {
+        OAuth2AuthorizationRequest authorizationRequest = createRequest(request.getRequestURL().toString(), params);
         // 加载client信息
         ClientDetails client = clientDetailsService.loadClientByClientId(authorizationRequest.getClientId());
         // 验证scope
@@ -95,7 +94,7 @@ public class AuthorizationEndpoint implements InitializingBean {
         if (preCheck(authorizationRequest, client)) {
             return null;
         } else {
-            model.put("authorizationRequest", authorizationRequest);
+            model.put(OAUTH2_AUTHORIZATION_REQUEST, authorizationRequest);
             // 如果预检没有通过，跳转到授权页面
             return new ModelAndView("/oauth/confirm_access", model);
         }
@@ -115,21 +114,22 @@ public class AuthorizationEndpoint implements InitializingBean {
             @RequestParam Map<String, String> approvalParameters,
             Map<String, ?> model,
             SessionStatus sessionStatus,
-            Principal principal) {
-        OAuth2AuthorizationRequest request = (OAuth2AuthorizationRequest) model.get("authorizationRequest");
+            Authentication principal) {
+        OAuth2AuthorizationRequest authorizationRequest = (OAuth2AuthorizationRequest) model
+                .get(OAUTH2_AUTHORIZATION_REQUEST);
 
         // 获取用户授权结果
-        ApprovalResult result = userApprovalHandler.approval(request, approvalParameters);
+        ApprovalResult approvalResult = userApprovalHandler.approval(authorizationRequest, approvalParameters);
 
         /**
          * 如果授权通过
          */
-        OAuth2AuthorizationResponseType responseType = request.getResponseType();
-        if (result.isApprovaled()) {
+        OAuth2AuthorizationResponseType responseType = authorizationRequest.getResponseType();
+        if (approvalResult.isApprovaled()) {
             if (CODE.equals(responseType)) {
-                return getAuthorizationCodeResponse(request, result, (Authentication) principal);
+                return getAuthorizationCodeResponse(authorizationRequest, approvalResult, principal);
             } else if (TOKEN.equals(responseType)) {
-                return getImplicitGrantResponse(request, result, principal);
+                return getImplicitGrantResponse(authorizationRequest, approvalResult, principal);
             }
         } else {
 
@@ -145,9 +145,13 @@ public class AuthorizationEndpoint implements InitializingBean {
      * @param principal 授权用户
      * @return
      */
-    private View getImplicitGrantResponse(OAuth2AuthorizationRequest request, ApprovalResult result, Principal principal) {
-        // TODO Auto-generated method stub
-        return null;
+    private View getImplicitGrantResponse(OAuth2AuthorizationRequest request, ApprovalResult result,
+            Authentication principal) {
+        OAuth2AccessTokenAuthentication tokenAuthentication = accessTokenGenerator
+                .generate(new OAuth2ApprovalAuthenticationToken(result, principal));
+        OAuth2AccessTokenAuthentication token = accessTokenService.save(tokenAuthentication);
+        Map<String, ?> fragment = converToAccessTokenResponse(token);
+        return buildRedirectView(request.getRedirectUri(), null, fragment);
     }
 
     /**
@@ -160,15 +164,15 @@ public class AuthorizationEndpoint implements InitializingBean {
             OAuth2AuthorizationRequest request,
             ApprovalResult result,
             Authentication principal) {
-        Map<String, String> query = new HashMap<>();
+        Map<String, String> query = new LinkedHashMap<>();
         String state = request.getState();
         if (StringUtils.isNotEmpty(state)) {
             query.put("state", state);
         }
         // 创建并保存授权码
-        String code = authorizationCodeService.create(new OAuth2Authentication(result, principal));
+        String code = authorizationCodeService.create(new OAuth2ApprovalAuthenticationToken(result, principal));
         query.put("code", code);
-        return buildRedirectView(request.getRedirectUri(), query);
+        return buildRedirectView(request.getRedirectUri(), query, null);
     }
 
     /**
@@ -190,7 +194,7 @@ public class AuthorizationEndpoint implements InitializingBean {
      * @param query 需要额外增加的查询参数
      * @return
      */
-    private View buildRedirectView(String uri, Map<String, String> query) {
+    private View buildRedirectView(String uri, Map<String, String> query, Map<String, ?> fragment) {
         // 将新构建的查询参数附加到url上
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(uri);
         if (MapUtils.isNotEmpty(query)) {
@@ -198,28 +202,28 @@ public class AuthorizationEndpoint implements InitializingBean {
                 builder.queryParam(key, value);
             });
         }
+        if (MapUtils.isNotEmpty(fragment)) {
+            StringBuilder values = new StringBuilder();
+            String originFragment = builder.build().getFragment();
+            if (StringUtils.isNotBlank(originFragment)) {
+                values.append(originFragment);
+            }
+            fragment.forEach((key, value) -> {
+                if (values.length() > 0) {
+                    values.append("&");
+                }
+                values.append(key).append("=").append(value);
+            });
+            builder.fragment(values.toString());
+        }
         RedirectView redirectView = new RedirectView(builder.toUriString());
         redirectView.setStatusCode(HttpStatus.SEE_OTHER);
         return redirectView;
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        if (Objects.isNull(oAuth2RequestValidator)) {
-            oAuth2RequestValidator = new DefaultOAuth2RequestValidator();
-        }
-
-        if (Objects.isNull(userApprovalHandler)) {
-            userApprovalHandler = new DefaultUserApprovalHandler();
-        }
-
-        if (Objects.isNull(authorizationCodeService)) {
-            authorizationCodeService = new InMemoryAuthorizationCodeService();
-        }
-    }
-
-    private OAuth2AuthorizationRequest createRequest(MultiValueMap<String, String> parameters) {
+    private OAuth2AuthorizationRequest createRequest(String uri, MultiValueMap<String, String> parameters) {
         Map<String, Object> additionalParameters = new HashMap<String, Object>();
+        String reponseType = parameters.getFirst(OAuth2ParameterNames.RESPONSE_TYPE);
         parameters.entrySet().stream()
                 .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
                         !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
@@ -227,13 +231,38 @@ public class AuthorizationEndpoint implements InitializingBean {
                         !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
                         !e.getKey().equals(OAuth2ParameterNames.STATE))
                 .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
-        return OAuth2AuthorizationRequest.authorizationCode()
-//                .authorizationUri(request.getRequestURL().toString())
+        String scope = parameters.getFirst(OAuth2ParameterNames.SCOPE);
+        Set<String> scopes = StringUtils.isBlank(scope) ? Collections.emptySet()
+                : Sets.newHashSet(StringUtils.split(scope, SPACE));
+        Builder requestBuilder = null;
+        if (CODE.getValue().equals(reponseType)) {
+            requestBuilder = OAuth2AuthorizationRequest.authorizationCode();
+        } else if (TOKEN.getValue().equals(reponseType)) {
+            requestBuilder = OAuth2AuthorizationRequest.implicit();
+        }
+        return requestBuilder
+                .authorizationUri(uri)
                 .clientId(parameters.getFirst(OAuth2ParameterNames.CLIENT_ID))
                 .redirectUri(parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI))
-                .scopes(new HashSet<>(parameters.get(OAuth2ParameterNames.SCOPE)))
+                .scopes(scopes)
                 .state(parameters.getFirst(OAuth2ParameterNames.STATE))
                 .additionalParameters(additionalParameters)
                 .build();
+    }
+
+    // TODO 这个是重复的
+    private Map<String, ?> converToAccessTokenResponse(OAuth2AccessTokenAuthentication authentication) {
+        OAuth2AccessToken accessToken = authentication.getAccessToken();
+        long expiresIn = -1;
+        Instant expiresAt = accessToken.getExpiresAt();
+        if (expiresAt != null) {
+            expiresIn = ChronoUnit.SECONDS.between(Instant.now(), expiresAt);
+        }
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("access_token", accessToken.getTokenValue());
+        result.put("token_type", accessToken.getTokenType().getValue());
+        result.put("expires_in", expiresIn);
+        result.put("refresh_token", "");
+        return result;
     }
 }

@@ -17,26 +17,18 @@ import com.xyyh.authorization.client.BaseClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.client.InMemoryClientDetailsService;
 import com.xyyh.authorization.provider.ClientDetailsUserDetailsService;
+import com.xyyh.authorization.provider.DefaultOAuth2AccessTokenGenerator;
+import com.xyyh.authorization.provider.InMemoryAuthorizationCodeService;
+import com.xyyh.authorization.provider.InMemoryOAuth2AccessTokenService;
+import com.xyyh.authorization.provider.OAuth2AccessTokenGenerator;
+import com.xyyh.authorization.provider.OAuth2AccessTokenService;
+import com.xyyh.authorization.provider.OAuth2AuthorizationCodeService;
 import com.xyyh.authorization.web.AuthorizationEndpoint;
 
 @EnableWebSecurity
 @Configuration
 @Order(99)
 public class AuthorizationSecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-    @Bean
-    public AuthorizationEndpoint authorizationEndpoint() {
-        AuthorizationEndpoint endPoint = new AuthorizationEndpoint();
-        endPoint.setClientDetailsService(clientDetailsService());
-        return endPoint;
-    }
-
-    @Bean
-    public ClientDetailsService clientDetailsService() {
-        InMemoryClientDetailsService cds = new InMemoryClientDetailsService();
-        cds.addClient(new BaseClientDetails("app", "123456", Collections.singleton("openid")));
-        return cds;
-    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -69,5 +61,42 @@ public class AuthorizationSecurityConfiguration extends WebSecurityConfigurerAda
                 return encodedPassword.toString();
             }
         };
+    }
+
+    @Bean
+    public OAuth2AccessTokenGenerator accessTokenGenerator() {
+        return new DefaultOAuth2AccessTokenGenerator();
+    }
+
+    @Bean
+    public AuthorizationEndpoint authorizationEndpoint() {
+        return new AuthorizationEndpoint();
+    }
+
+    @Bean
+    public ClientDetailsService clientDetailsService() {
+        InMemoryClientDetailsService cds = new InMemoryClientDetailsService();
+        cds.addClient(new BaseClientDetails("app", "123456", Collections.singleton("openid")));
+        return cds;
+    }
+
+    /**
+     * 保存Access Token
+     * 
+     * @return
+     */
+    @Bean
+    public OAuth2AccessTokenService oAuth2AccessTokenService() {
+        return new InMemoryOAuth2AccessTokenService();
+    }
+
+    /**
+     * 保存 Authorization Code
+     * 
+     * @return
+     */
+    @Bean
+    public OAuth2AuthorizationCodeService oAuth2AuthorizationCodeService() {
+        return new InMemoryAuthorizationCodeService();
     }
 }

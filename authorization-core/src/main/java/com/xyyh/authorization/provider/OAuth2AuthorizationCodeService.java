@@ -1,8 +1,8 @@
 package com.xyyh.authorization.provider;
 
-import com.xyyh.authorization.core.OAuth2Authentication;
+import com.xyyh.authorization.core.OAuth2ApprovalAuthenticationToken;
 
-public interface AuthorizationCodeService {
+public interface OAuth2AuthorizationCodeService {
 
     /**
      * 根据信息创建授权码
@@ -12,7 +12,7 @@ public interface AuthorizationCodeService {
      * @param principal
      * @return
      */
-    String create(OAuth2Authentication auth);
+    String create(OAuth2ApprovalAuthenticationToken auth);
 
     /**
      * 删除指定授权码
@@ -26,6 +26,6 @@ public interface AuthorizationCodeService {
      * 
      * @param code
      */
-    OAuth2Authentication get(String code);
+    OAuth2ApprovalAuthenticationToken get(String code);
 
 }
