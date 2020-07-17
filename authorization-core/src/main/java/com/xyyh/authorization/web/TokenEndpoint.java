@@ -19,6 +19,7 @@ import com.xyyh.authorization.core.OAuth2AccessTokenService;
 import com.xyyh.authorization.core.OAuth2Authentication;
 import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
 import com.xyyh.authorization.core.OAuth2RequestValidator;
+import com.xyyh.authorization.exception.RequestValidationException;
 import com.xyyh.authorization.provider.DefaultApprovalResult;
 import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
 
@@ -110,7 +111,7 @@ public class TokenEndpoint {
         // TODO 验证client是否匹配
         // TODO 验证RedirectUri
         if (Objects.isNull(authentication)) {
-            throw new RuntimeException("指定授权码不正确");
+            throw new RequestValidationException("指定授权码不正确");
         } else {
             OAuth2AccessToken accessToken = accessTokenService.create(authentication);
             authorizationCodeService.delete(code);

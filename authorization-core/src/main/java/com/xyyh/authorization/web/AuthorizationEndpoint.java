@@ -143,7 +143,6 @@ public class AuthorizationEndpoint {
     private View getImplicitGrantResponse(OAuth2AuthorizationRequest request, ApprovalResult result,
             Authentication userAuthentication) {
         OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(result, userAuthentication);
-
         OAuth2AccessToken accessToken = accessTokenService.create(authentication);
         Map<String, ?> fragment = converToAccessTokenResponse(accessToken);
         return buildRedirectView(request.getRedirectUri(), null, fragment);

@@ -1,5 +1,9 @@
 package com.xyyh.authorization.config;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,8 +12,11 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.DefaultOAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.core.OAuth2AuthenticatedPrincipal;
 import org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector;
 
@@ -27,7 +34,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.oauth2ResourceServer().opaqueToken().introspector(introspector());
-
     }
 
     private OpaqueTokenIntrospector introspector() {
@@ -35,8 +41,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             @Override
             public OAuth2AuthenticatedPrincipal introspect(String token) {
                 OAuth2Authentication authentication = oAuth2AccessTokenService.getAuthentication(token);
-                // TODO 待处理
-                return null;
+                Authentication user = (Authentication) authentication.getDetails();
+                Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>) authentication
+                        .getAuthorities();
+                String name = authentication.getName();
+                Map<String, Object> attributes = new HashMap<>();
+                attributes.put("sub", name);
+                attributes.put("principal", authentication.getPrincipal());
+                return new DefaultOAuth2AuthenticatedPrincipal(name, attributes, authorities);
             }
         };
     }
@@ -57,7 +69,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean(name = "userAuthenticationManage")
+    @Bean(name = "userAuthenticationManager")
     @Override
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManagerBean();
