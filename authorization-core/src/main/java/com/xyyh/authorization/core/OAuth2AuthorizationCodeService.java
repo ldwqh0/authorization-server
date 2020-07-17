@@ -10,7 +10,7 @@ public interface OAuth2AuthorizationCodeService {
      * @param principal
      * @return
      */
-    String create(OAuth2ApprovalAuthenticationToken auth);
+    String create(OAuth2Authentication auth);
 
     /**
      * 删除指定授权码
@@ -24,6 +24,6 @@ public interface OAuth2AuthorizationCodeService {
      * 
      * @param code
      */
-    OAuth2ApprovalAuthenticationToken get(String code);
+    OAuth2Authentication get(String code);
 
 }

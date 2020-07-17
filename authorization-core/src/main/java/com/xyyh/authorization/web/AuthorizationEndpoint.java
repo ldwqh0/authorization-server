@@ -22,13 +22,12 @@ import com.google.common.collect.Sets;
 import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.core.ApprovalResult;
-import com.xyyh.authorization.core.OAuth2AccessTokenAuthentication;
-import com.xyyh.authorization.core.OAuth2AccessTokenGenerator;
 import com.xyyh.authorization.core.OAuth2AccessTokenService;
-import com.xyyh.authorization.core.OAuth2ApprovalAuthenticationToken;
+import com.xyyh.authorization.core.OAuth2Authentication;
 import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
 import com.xyyh.authorization.core.OAuth2RequestValidator;
 import com.xyyh.authorization.core.UserApprovalHandler;
+import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
 import com.xyyh.authorization.provider.DefaultUserApprovalHandler;
 
 import java.time.Instant;
@@ -61,9 +60,6 @@ public class AuthorizationEndpoint {
 
     @Autowired
     private OAuth2AuthorizationCodeService authorizationCodeService;
-
-    @Autowired
-    private OAuth2AccessTokenGenerator accessTokenGenerator;
 
     @Autowired
     private OAuth2AccessTokenService accessTokenService;
@@ -145,11 +141,11 @@ public class AuthorizationEndpoint {
      * @return
      */
     private View getImplicitGrantResponse(OAuth2AuthorizationRequest request, ApprovalResult result,
-            Authentication principal) {
-        OAuth2AccessTokenAuthentication tokenAuthentication = accessTokenGenerator
-                .generate(new OAuth2ApprovalAuthenticationToken(result, principal));
-        OAuth2AccessTokenAuthentication token = accessTokenService.save(tokenAuthentication);
-        Map<String, ?> fragment = converToAccessTokenResponse(token);
+            Authentication userAuthentication) {
+        OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(result, userAuthentication);
+
+        OAuth2AccessToken accessToken = accessTokenService.create(authentication);
+        Map<String, ?> fragment = converToAccessTokenResponse(accessToken);
         return buildRedirectView(request.getRedirectUri(), null, fragment);
     }
 
@@ -169,7 +165,7 @@ public class AuthorizationEndpoint {
             query.put("state", state);
         }
         // 创建并保存授权码
-        String code = authorizationCodeService.create(new OAuth2ApprovalAuthenticationToken(result, principal));
+        String code = authorizationCodeService.create(new DefaultOAuth2AuthenticationToken(result, principal));
         query.put("code", code);
         return buildRedirectView(request.getRedirectUri(), query, null);
     }
@@ -250,8 +246,7 @@ public class AuthorizationEndpoint {
     }
 
     // TODO 这个是重复的
-    private Map<String, ?> converToAccessTokenResponse(OAuth2AccessTokenAuthentication authentication) {
-        OAuth2AccessToken accessToken = authentication.getAccessToken();
+    private Map<String, ?> converToAccessTokenResponse(OAuth2AccessToken accessToken) {
         long expiresIn = -1;
         Instant expiresAt = accessToken.getExpiresAt();
         if (expiresAt != null) {

@@ -1,10 +1,14 @@
 package com.xyyh.authorization.core;
 
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+
 public interface OAuth2AccessTokenService {
 
-    public OAuth2AccessTokenAuthentication save(OAuth2AccessTokenAuthentication token);
+    public OAuth2AccessToken create(OAuth2Authentication authentication);
 
-    public void delete(String token);
+    public void delete(String accessToken);
 
-    public OAuth2AccessTokenAuthentication get(String accessToken);
+    public OAuth2Authentication getAuthentication(String accessToken);
+
+    public OAuth2AccessToken getAccessToken(String accessToken);
 }

@@ -3,28 +3,37 @@ package com.xyyh.authorization.provider;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.xyyh.authorization.core.OAuth2AccessTokenAuthentication;
-import com.xyyh.authorization.core.OAuth2AccessTokenService;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
 
-public class InMemoryOAuth2AccessTokenService implements OAuth2AccessTokenService {
+import com.xyyh.authorization.core.OAuth2Authentication;
 
-    private Map<String, OAuth2AccessTokenAuthentication> reposiotry = new ConcurrentHashMap<String, OAuth2AccessTokenAuthentication>();
+public class InMemoryOAuth2AccessTokenService extends AbstractOAuth2AccessTokenService {
 
-    @Override
-    public OAuth2AccessTokenAuthentication save(OAuth2AccessTokenAuthentication token) {
-        String tokenValue = token.getAccessToken().getTokenValue();
-        this.reposiotry.put(tokenValue, token);
-        return token;
-    }
+    private final Map<String, OAuth2Authentication> authenticationReposiotry = new ConcurrentHashMap<>();
+
+    private final Map<String, OAuth2AccessToken> tokenRepository = new ConcurrentHashMap<>();
 
     @Override
     public void delete(String token) {
-        this.reposiotry.remove(token);
+        this.authenticationReposiotry.remove(token);
+        this.tokenRepository.remove(token);
     }
 
     @Override
-    public OAuth2AccessTokenAuthentication get(String accessToken) {
-        return this.reposiotry.get(accessToken);
+    protected void save(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
+        String tokenKey = accessToken.getTokenValue();
+        this.authenticationReposiotry.put(tokenKey, authentication);
+        this.tokenRepository.put(tokenKey, accessToken);
+    }
+
+    @Override
+    public OAuth2Authentication getAuthentication(String accessToken) {
+        return this.authenticationReposiotry.get(accessToken);
+    }
+
+    @Override
+    public OAuth2AccessToken getAccessToken(String accessToken) {
+        return this.tokenRepository.get(accessToken);
     }
 
 }

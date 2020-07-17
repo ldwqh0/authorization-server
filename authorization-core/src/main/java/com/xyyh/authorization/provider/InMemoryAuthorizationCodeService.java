@@ -4,17 +4,17 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.xyyh.authorization.core.OAuth2ApprovalAuthenticationToken;
+import com.xyyh.authorization.core.OAuth2Authentication;
 import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
 
 public class InMemoryAuthorizationCodeService implements OAuth2AuthorizationCodeService {
     private static final String RandomChars = "qwertyuiopasdfghjklzxcvbnm1234567890QWERTYUIOPASDFGHJKLZXCVBNM";
 
     // TODO 要处理过期时间
-    private Map<String, OAuth2ApprovalAuthenticationToken> store = new ConcurrentHashMap<>();
+    private Map<String, OAuth2Authentication> store = new ConcurrentHashMap<>();
 
     @Override
-    public String create(OAuth2ApprovalAuthenticationToken auth) {
+    public String create(OAuth2Authentication auth) {
         String code = getRandomString(8);
         store.put(code, auth);
         return code;
@@ -26,7 +26,7 @@ public class InMemoryAuthorizationCodeService implements OAuth2AuthorizationCode
     }
 
     @Override
-    public OAuth2ApprovalAuthenticationToken get(String code) {
+    public OAuth2Authentication get(String code) {
         return store.get(code);
     }
 

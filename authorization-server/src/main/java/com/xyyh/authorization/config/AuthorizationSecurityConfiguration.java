@@ -16,12 +16,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.xyyh.authorization.client.BaseClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.client.InMemoryClientDetailsService;
-import com.xyyh.authorization.core.OAuth2AccessTokenGenerator;
 import com.xyyh.authorization.core.OAuth2AccessTokenService;
 import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
 import com.xyyh.authorization.core.OAuth2RequestValidator;
 import com.xyyh.authorization.provider.ClientDetailsUserDetailsService;
-import com.xyyh.authorization.provider.DefaultOAuth2AccessTokenGenerator;
 import com.xyyh.authorization.provider.DefaultOAuth2RequestValidator;
 import com.xyyh.authorization.provider.InMemoryAuthorizationCodeService;
 import com.xyyh.authorization.provider.InMemoryOAuth2AccessTokenService;
@@ -63,11 +61,6 @@ public class AuthorizationSecurityConfiguration extends WebSecurityConfigurerAda
                 return encodedPassword.toString();
             }
         };
-    }
-
-    @Bean
-    public OAuth2AccessTokenGenerator accessTokenGenerator() {
-        return new DefaultOAuth2AccessTokenGenerator();
     }
 
     @Bean

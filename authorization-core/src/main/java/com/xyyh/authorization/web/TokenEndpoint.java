@@ -15,13 +15,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.google.common.collect.Sets;
 import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
-import com.xyyh.authorization.core.OAuth2AccessTokenAuthentication;
-import com.xyyh.authorization.core.OAuth2AccessTokenGenerator;
 import com.xyyh.authorization.core.OAuth2AccessTokenService;
-import com.xyyh.authorization.core.OAuth2ApprovalAuthenticationToken;
+import com.xyyh.authorization.core.OAuth2Authentication;
 import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
 import com.xyyh.authorization.core.OAuth2RequestValidator;
 import com.xyyh.authorization.provider.DefaultApprovalResult;
+import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
 
 import java.security.Principal;
 import java.time.Instant;
@@ -41,9 +40,6 @@ public class TokenEndpoint {
 
     @Autowired
     private OAuth2AccessTokenService accessTokenService;
-
-    @Autowired
-    private OAuth2AccessTokenGenerator accessTokenGenerator;
 
     @Autowired(required = false)
     private AuthenticationManager userAuthenticationManager;
@@ -88,14 +84,13 @@ public class TokenEndpoint {
         approvalResult = new DefaultApprovalResult();
         approvalResult.setClientId(client.getClientId());
         approvalResult.setScope(scopes);
-        OAuth2ApprovalAuthenticationToken approvalAuthenticationToken = new OAuth2ApprovalAuthenticationToken(
-                approvalResult, user);
+        OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(approvalResult, user);
 
         // 生成并保存token
-        OAuth2AccessTokenAuthentication accessTokenAuthentication = accessTokenService
-                .save(accessTokenGenerator.generate(approvalAuthenticationToken));
+        OAuth2AccessToken accessToken = accessTokenService.create(authentication);
+
         // 返回token
-        return ResponseEntity.ok(converToAccessTokenResponse(accessTokenAuthentication));
+        return ResponseEntity.ok(converToAccessTokenResponse(accessToken));
     }
 
     /**
@@ -111,16 +106,15 @@ public class TokenEndpoint {
             Principal principal,
             @RequestParam("code") String code,
             @RequestParam("redirect_uri") String redirectUri) {
-        OAuth2ApprovalAuthenticationToken token = authorizationCodeService.get(code);
+        OAuth2Authentication authentication = authorizationCodeService.get(code);
         // TODO 验证client是否匹配
         // TODO 验证RedirectUri
-        if (Objects.isNull(token)) {
+        if (Objects.isNull(authentication)) {
             throw new RuntimeException("指定授权码不正确");
         } else {
-            OAuth2AccessTokenAuthentication authentication = accessTokenService
-                    .save(accessTokenGenerator.generate(token));
+            OAuth2AccessToken accessToken = accessTokenService.create(authentication);
             authorizationCodeService.delete(code);
-            return ResponseEntity.ok(converToAccessTokenResponse(authentication));
+            return ResponseEntity.ok(converToAccessTokenResponse(accessToken));
         }
     }
 
@@ -136,7 +130,6 @@ public class TokenEndpoint {
             @RequestParam("refresh_token") String refreshToken,
             @RequestParam("scope") String scope) {
         return null;
-
     }
 
     /**
@@ -145,8 +138,7 @@ public class TokenEndpoint {
      * @param authentication
      * @return
      */
-    private Map<String, ?> converToAccessTokenResponse(OAuth2AccessTokenAuthentication authentication) {
-        OAuth2AccessToken accessToken = authentication.getAccessToken();
+    private Map<String, ?> converToAccessTokenResponse(OAuth2AccessToken accessToken) {
         long expiresIn = -1;
         Instant expiresAt = accessToken.getExpiresAt();
         if (expiresAt != null) {
@@ -157,7 +149,7 @@ public class TokenEndpoint {
         result.put("token_type", accessToken.getTokenType().getValue());
         result.put("expires_in", expiresIn);
         // TODO refreshToken策略 result.put("refresh_token", "");
-        // TODO scope策略 result.put("scope", "");
+        // TODO scope策略 result.put("scope", ""); accessToken.getScopes();
         return result;
     }
 
