@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.xyyh.authorization.core.OAuth2ApprovalAuthenticationToken;
+import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
 
 public class InMemoryAuthorizationCodeService implements OAuth2AuthorizationCodeService {
     private static final String RandomChars = "qwertyuiopasdfghjklzxcvbnm1234567890QWERTYUIOPASDFGHJKLZXCVBNM";

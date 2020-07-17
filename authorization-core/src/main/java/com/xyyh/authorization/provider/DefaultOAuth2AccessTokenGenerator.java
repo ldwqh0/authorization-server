@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AccessToken.TokenType;
 
 import com.xyyh.authorization.core.OAuth2AccessTokenAuthentication;
+import com.xyyh.authorization.core.OAuth2AccessTokenGenerator;
 import com.xyyh.authorization.core.OAuth2ApprovalAuthenticationToken;
 
 public class DefaultOAuth2AccessTokenGenerator implements OAuth2AccessTokenGenerator {

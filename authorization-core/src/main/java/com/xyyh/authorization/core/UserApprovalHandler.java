@@ -1,10 +1,8 @@
-package com.xyyh.authorization.provider;
+package com.xyyh.authorization.core;
 
 import java.util.Map;
 
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-
-import com.xyyh.authorization.core.ApprovalResult;
 
 public interface UserApprovalHandler {
 

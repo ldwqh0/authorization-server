@@ -8,6 +8,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 import com.xyyh.authorization.core.ApprovalResult;
+import com.xyyh.authorization.core.UserApprovalHandler;
 
 /**
  * 默认的授权处理器

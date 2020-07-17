@@ -23,14 +23,13 @@ import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.core.ApprovalResult;
 import com.xyyh.authorization.core.OAuth2AccessTokenAuthentication;
+import com.xyyh.authorization.core.OAuth2AccessTokenGenerator;
+import com.xyyh.authorization.core.OAuth2AccessTokenService;
 import com.xyyh.authorization.core.OAuth2ApprovalAuthenticationToken;
-import com.xyyh.authorization.provider.OAuth2AuthorizationCodeService;
-import com.xyyh.authorization.provider.DefaultOAuth2RequestValidator;
+import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
+import com.xyyh.authorization.core.OAuth2RequestValidator;
+import com.xyyh.authorization.core.UserApprovalHandler;
 import com.xyyh.authorization.provider.DefaultUserApprovalHandler;
-import com.xyyh.authorization.provider.OAuth2AccessTokenGenerator;
-import com.xyyh.authorization.provider.OAuth2AccessTokenService;
-import com.xyyh.authorization.provider.OAuth2RequestValidator;
-import com.xyyh.authorization.provider.UserApprovalHandler;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -54,8 +53,8 @@ public class AuthorizationEndpoint {
     @Autowired
     private ClientDetailsService clientDetailsService;
 
-    @Autowired(required = false)
-    private OAuth2RequestValidator oAuth2RequestValidator = new DefaultOAuth2RequestValidator();
+    @Autowired
+    private OAuth2RequestValidator oAuth2RequestValidator;
 
     @Autowired(required = false)
     private UserApprovalHandler userApprovalHandler = new DefaultUserApprovalHandler();

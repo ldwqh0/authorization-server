@@ -1,6 +1,4 @@
-package com.xyyh.authorization.provider;
-
-import com.xyyh.authorization.core.OAuth2ApprovalAuthenticationToken;
+package com.xyyh.authorization.core;
 
 public interface OAuth2AuthorizationCodeService {
 

@@ -16,13 +16,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.xyyh.authorization.client.BaseClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.client.InMemoryClientDetailsService;
+import com.xyyh.authorization.core.OAuth2AccessTokenGenerator;
+import com.xyyh.authorization.core.OAuth2AccessTokenService;
+import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
+import com.xyyh.authorization.core.OAuth2RequestValidator;
 import com.xyyh.authorization.provider.ClientDetailsUserDetailsService;
 import com.xyyh.authorization.provider.DefaultOAuth2AccessTokenGenerator;
+import com.xyyh.authorization.provider.DefaultOAuth2RequestValidator;
 import com.xyyh.authorization.provider.InMemoryAuthorizationCodeService;
 import com.xyyh.authorization.provider.InMemoryOAuth2AccessTokenService;
-import com.xyyh.authorization.provider.OAuth2AccessTokenGenerator;
-import com.xyyh.authorization.provider.OAuth2AccessTokenService;
-import com.xyyh.authorization.provider.OAuth2AuthorizationCodeService;
 import com.xyyh.authorization.web.AuthorizationEndpoint;
 
 @EnableWebSecurity
@@ -98,5 +100,10 @@ public class AuthorizationSecurityConfiguration extends WebSecurityConfigurerAda
     @Bean
     public OAuth2AuthorizationCodeService oAuth2AuthorizationCodeService() {
         return new InMemoryAuthorizationCodeService();
+    }
+
+    @Bean
+    public OAuth2RequestValidator oAuth2RequestValidator() {
+        return new DefaultOAuth2RequestValidator();
     }
 }

@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.xyyh.authorization.core.OAuth2AccessTokenAuthentication;
+import com.xyyh.authorization.core.OAuth2AccessTokenService;
 
 public class InMemoryOAuth2AccessTokenService implements OAuth2AccessTokenService {
 

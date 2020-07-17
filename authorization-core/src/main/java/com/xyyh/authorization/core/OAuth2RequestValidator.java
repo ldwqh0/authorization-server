@@ -1,10 +1,11 @@
-package com.xyyh.authorization.provider;
+package com.xyyh.authorization.core;
+
+import java.util.Set;
 
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.exception.InvalidScopeException;
-import com.xyyh.authorization.token.request.TokenRequest;
 
 /**
  * 
@@ -25,6 +26,6 @@ public interface OAuth2RequestValidator {
      * @param client       the client that is making the request
      * @throws InvalidScopeException if a requested scope is invalid
      */
-    public void validateScope(TokenRequest tokenRequest, ClientDetails client) throws InvalidScopeException;
+    public void validateScope(Set<String> scopes, ClientDetails client);
 
 }
