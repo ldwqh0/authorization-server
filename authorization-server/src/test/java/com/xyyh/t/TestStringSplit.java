@@ -19,7 +19,7 @@ public class TestStringSplit {
 
     private static final Random random = new SecureRandom();
     private static final String RandomChars = "qwertyuiopasdfghjklzxcvbnm1234567890QWERTYUIOPASDFGHJKLZXCVBNM";
-    StringKeyGenerator accessTokenGenerator = new Base64StringKeyGenerator(Base64.getEncoder());
+    StringKeyGenerator accessTokenGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
 
     BytesKeyGenerator g = KeyGenerators.secureRandom(32);
 
@@ -51,12 +51,19 @@ public class TestStringSplit {
     }
 
     @Test
+    public void Random6() {
+        for (int i = 0; i < 100; i++) {
+            System.out.println(Base64.getUrlEncoder().encodeToString(KeyGenerators.secureRandom(30).generateKey()));
+        }
+    }
+
+    @Test
     public void testa() {
         System.out.println(random3());
         System.out.println(random4());
         long now = System.currentTimeMillis();
         for (int i = 0; i < 1000000; i++) {
-            random4();
+            System.out.println(random2());
         }
         System.out.println(System.currentTimeMillis() - now);
     }

@@ -15,7 +15,7 @@ import com.xyyh.authorization.core.OAuth2Authentication;
 
 public abstract class AbstractOAuth2AccessTokenService implements OAuth2AccessTokenService {
 
-    private final StringKeyGenerator accessTokenGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder());
+    private final StringKeyGenerator accessTokenGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
 
     @Override
     public OAuth2AccessToken create(OAuth2Authentication authentication) {
