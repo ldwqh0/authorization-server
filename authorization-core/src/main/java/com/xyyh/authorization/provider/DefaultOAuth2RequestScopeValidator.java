@@ -6,10 +6,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
 import com.xyyh.authorization.client.ClientDetails;
-import com.xyyh.authorization.core.OAuth2RequestValidator;
+import com.xyyh.authorization.core.OAuth2RequestScopeValidator;
 import com.xyyh.authorization.exception.InvalidScopeException;
 
-public class DefaultOAuth2RequestValidator implements OAuth2RequestValidator {
+public class DefaultOAuth2RequestScopeValidator implements OAuth2RequestScopeValidator {
 
     @Override
     public void validateScope(OAuth2AuthorizationRequest authorizationRequest, ClientDetails client)

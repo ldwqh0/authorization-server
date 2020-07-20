@@ -1,7 +1,17 @@
 package com.xyyh.authorization.config;
 
-import java.util.Collections;
-
+import com.google.common.collect.Sets;
+import com.xyyh.authorization.client.BaseClientDetails;
+import com.xyyh.authorization.client.ClientDetailsService;
+import com.xyyh.authorization.client.InMemoryClientDetailsService;
+import com.xyyh.authorization.core.OAuth2AccessTokenService;
+import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
+import com.xyyh.authorization.core.OAuth2RequestScopeValidator;
+import com.xyyh.authorization.provider.ClientDetailsUserDetailsService;
+import com.xyyh.authorization.provider.DefaultOAuth2RequestScopeValidator;
+import com.xyyh.authorization.provider.InMemoryAuthorizationCodeService;
+import com.xyyh.authorization.provider.InMemoryOAuth2AccessTokenService;
+import com.xyyh.authorization.web.AuthorizationEndpoint;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,18 +23,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.xyyh.authorization.client.BaseClientDetails;
-import com.xyyh.authorization.client.ClientDetailsService;
-import com.xyyh.authorization.client.InMemoryClientDetailsService;
-import com.xyyh.authorization.core.OAuth2AccessTokenService;
-import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
-import com.xyyh.authorization.core.OAuth2RequestValidator;
-import com.xyyh.authorization.provider.ClientDetailsUserDetailsService;
-import com.xyyh.authorization.provider.DefaultOAuth2RequestValidator;
-import com.xyyh.authorization.provider.InMemoryAuthorizationCodeService;
-import com.xyyh.authorization.provider.InMemoryOAuth2AccessTokenService;
-import com.xyyh.authorization.web.AuthorizationEndpoint;
-
 @EnableWebSecurity
 @Configuration
 @Order(99)
@@ -34,19 +32,19 @@ public class AuthorizationSecurityConfiguration extends WebSecurityConfigurerAda
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http.formLogin().disable()
-                .requestMatchers()
-                .antMatchers("/oauth/token")
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-                .and()
-                .csrf().disable();
+            .requestMatchers()
+            .antMatchers("/oauth/token")
+            .and()
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+            .and()
+            .csrf().disable();
     }
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(new ClientDetailsUserDetailsService(clientDetailsService()))
-                .passwordEncoder(passwordEncoder());
+            .passwordEncoder(passwordEncoder());
     }
 
     private PasswordEncoder passwordEncoder() {
@@ -71,13 +69,18 @@ public class AuthorizationSecurityConfiguration extends WebSecurityConfigurerAda
     @Bean
     public ClientDetailsService clientDetailsService() {
         InMemoryClientDetailsService cds = new InMemoryClientDetailsService();
-        cds.addClient(new BaseClientDetails("app", "123456", Collections.singleton("openid")));
+        cds.addClient(new BaseClientDetails(
+            "app",
+            "123456",
+            Sets.newHashSet("openid"),
+            Sets.newHashSet("https://www2.baidu.com"))
+        );
         return cds;
     }
 
     /**
      * 保存Access Token
-     * 
+     *
      * @return
      */
     @Bean
@@ -87,7 +90,7 @@ public class AuthorizationSecurityConfiguration extends WebSecurityConfigurerAda
 
     /**
      * 保存 Authorization Code
-     * 
+     *
      * @return
      */
     @Bean
@@ -96,7 +99,7 @@ public class AuthorizationSecurityConfiguration extends WebSecurityConfigurerAda
     }
 
     @Bean
-    public OAuth2RequestValidator oAuth2RequestValidator() {
-        return new DefaultOAuth2RequestValidator();
+    public OAuth2RequestScopeValidator oAuth2RequestValidator() {
+        return new DefaultOAuth2RequestScopeValidator();
     }
 }

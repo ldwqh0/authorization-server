@@ -6,7 +6,7 @@ import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.core.OAuth2AccessTokenService;
 import com.xyyh.authorization.core.OAuth2Authentication;
 import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
-import com.xyyh.authorization.core.OAuth2RequestValidator;
+import com.xyyh.authorization.core.OAuth2RequestScopeValidator;
 import com.xyyh.authorization.exception.RequestValidationException;
 import com.xyyh.authorization.provider.DefaultApprovalResult;
 import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
@@ -42,7 +42,7 @@ public class TokenEndpoint {
     private AuthenticationManager userAuthenticationManager;
 
     @Autowired
-    private OAuth2RequestValidator oAuth2RequestValidator;
+    private OAuth2RequestScopeValidator oAuth2RequestValidator;
 
     @Autowired
     private ClientDetailsService clientDetailsService;

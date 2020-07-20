@@ -5,6 +5,7 @@ import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.core.*;
 import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
+import com.xyyh.authorization.provider.DefaultOAuth2RedirectUriValidator;
 import com.xyyh.authorization.provider.DefaultUserApprovalHandler;
 import com.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -42,7 +43,7 @@ public class AuthorizationEndpoint {
     private ClientDetailsService clientDetailsService;
 
     @Autowired
-    private OAuth2RequestValidator oAuth2RequestValidator;
+    private OAuth2RequestScopeValidator oAuth2RequestValidator;
 
     @Autowired(required = false)
     private UserApprovalHandler userApprovalHandler = new DefaultUserApprovalHandler();
@@ -53,12 +54,15 @@ public class AuthorizationEndpoint {
     @Autowired
     private OAuth2AccessTokenService accessTokenService;
 
+    @Autowired(required = false)
+    private OAuth2RedirectUriValidator redirectUriValidator = new DefaultOAuth2RedirectUriValidator();
+
     /**
      * 返回授权页面
      *
      * @param model
      * @param sessionStatus
-     * @param principal
+     * @param userAuthentication
      * @return
      */
     @GetMapping
@@ -67,13 +71,17 @@ public class AuthorizationEndpoint {
         Map<String, Object> model,
         @RequestParam MultiValueMap<String, String> params,
         SessionStatus sessionStatus,
-        Authentication principal) {
+        Authentication userAuthentication) {
         OAuth2AuthorizationRequest authorizationRequest = createRequest(request.getRequestURL().toString(), params);
         // 加载client信息
         ClientDetails client = clientDetailsService.loadClientByClientId(authorizationRequest.getClientId());
         // 验证scope
         oAuth2RequestValidator.validateScope(authorizationRequest, client);
 
+        String redirectUri = authorizationRequest.getRedirectUri();
+
+        // 验证request redirect uri是否符合请求
+        redirectUriValidator.validate(authorizationRequest.getRedirectUri(), client.getRegisteredRedirectUris());
         // 进行请求预检
         if (preCheck(authorizationRequest, client)) {
             return null;

@@ -9,16 +9,18 @@ public class BaseClientDetails implements ClientDetails {
     private String clientId;
     private String clientSecret;
     private Set<String> scope;
+    private Set<String> registeredRedirectUris;
 
     public BaseClientDetails() {
         super();
     }
 
-    public BaseClientDetails(String clientId, String clientSecret, Set<String> scope) {
+    public BaseClientDetails(String clientId, String clientSecret, Set<String> scope, Set<String> registeredRedirectUris) {
         super();
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.scope = scope;
+        this.registeredRedirectUris = registeredRedirectUris;
     }
 
     @Override
@@ -34,6 +36,15 @@ public class BaseClientDetails implements ClientDetails {
     @Override
     public Set<String> getScope() {
         return this.scope;
+    }
+
+    @Override
+    public Set<String> getRegisteredRedirectUris() {
+        return registeredRedirectUris;
+    }
+
+    public void setRegisteredRedirectUri(Set<String> registeredRedirectUri) {
+        this.registeredRedirectUris = registeredRedirectUri;
     }
 
     public void setClientId(String clientId) {
