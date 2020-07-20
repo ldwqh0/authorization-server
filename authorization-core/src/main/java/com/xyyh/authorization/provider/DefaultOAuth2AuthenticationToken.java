@@ -1,33 +1,31 @@
 package com.xyyh.authorization.provider;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
-
+import com.xyyh.authorization.core.ApprovalResult;
+import com.xyyh.authorization.core.OAuth2Authentication;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.xyyh.authorization.core.ApprovalResult;
-import com.xyyh.authorization.core.OAuth2Authentication;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * 授权结果token
- * 
- * @author LiDong
  *
+ * @author LiDong
  */
 public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     private static final long serialVersionUID = -6827330735137748398L;
 
-    private ApprovalResult result;
+    private ApprovalResult approvalResult;
 
     private Authentication userAuthentication;
 
     @Override
     public boolean isAuthenticated() {
-        return this.result.isApprovaled()
-                && (Objects.isNull(userAuthentication) || userAuthentication.isAuthenticated());
+        return this.approvalResult.isApprovaled()
+            && (Objects.isNull(userAuthentication) || userAuthentication.isAuthenticated());
     }
 
     public boolean isClientOnly() {
@@ -35,13 +33,13 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     }
 
     public DefaultOAuth2AuthenticationToken(ApprovalResult result,
-            Authentication userAuthentication) {
-        this.result = result;
+                                            Authentication userAuthentication) {
+        this.approvalResult = result;
         this.userAuthentication = userAuthentication;
     }
 
-    public ApprovalResult getResult() {
-        return result;
+    public ApprovalResult getApprovalResult() {
+        return approvalResult;
     }
 
     public Authentication getUserAuthentication() {
@@ -50,17 +48,17 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public Object getCredentials() {
-        return "";
+        return "NaN";
     }
 
     @Override
     public Object getPrincipal() {
-        return this.userAuthentication == null ? this.result.getClientId() : this.userAuthentication.getPrincipal();
+        return this.userAuthentication == null ? this.approvalResult.getClientId() : this.userAuthentication.getPrincipal();
     }
 
     @Override
     public String getName() {
-        return String.valueOf(getPrincipal());
+        return Objects.isNull(this.userAuthentication) ? this.approvalResult.getClientId() : this.userAuthentication.getName();
     }
 
     @Override
@@ -70,7 +68,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public Object getDetails() {
-        return Objects.isNull(this.userAuthentication) ? this.result : this.userAuthentication;
+        return Objects.isNull(this.userAuthentication) ? this.approvalResult : this.userAuthentication;
     }
 
     @Override
@@ -80,20 +78,19 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public String getClientId() {
-        return result.getClientId();
+        return approvalResult.getClientId();
     }
 
     @Override
     public Set<String> getScopes() {
-        return result.getScope();
+        return approvalResult.getScope();
     }
 
     @Override
     public void eraseCredentials() {
         if (this.userAuthentication != null
-                && CredentialsContainer.class.isAssignableFrom(this.userAuthentication.getClass())) {
+            && CredentialsContainer.class.isAssignableFrom(this.userAuthentication.getClass())) {
             CredentialsContainer.class.cast(this.userAuthentication).eraseCredentials();
         }
     }
-
 }

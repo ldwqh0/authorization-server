@@ -1,17 +1,5 @@
 package com.xyyh.authorization.web;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import com.google.common.collect.Sets;
 import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
@@ -22,11 +10,19 @@ import com.xyyh.authorization.core.OAuth2RequestValidator;
 import com.xyyh.authorization.exception.RequestValidationException;
 import com.xyyh.authorization.provider.DefaultApprovalResult;
 import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
+import com.xyyh.authorization.utils.OAuth2AccessTokenUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import java.security.Principal;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -51,26 +47,27 @@ public class TokenEndpoint {
     @Autowired
     private ClientDetailsService clientDetailsService;
 
-    @GetMapping
+    //    @GetMapping
+    // 暂不支持get请求
     public ResponseEntity<Map<String, ?>> getAccessToken(
-            Principal principal,
-            @RequestParam("grant_type") String grantType,
-            @RequestParam("code") String code,
-            @RequestParam("redirect_uri") String redirectUri) {
+        Authentication principal,
+        @RequestParam("grant_type") String grantType,
+        @RequestParam("code") String code,
+        @RequestParam("redirect_uri") String redirectUri) {
         return postAccessToken(principal, code, redirectUri);
     }
 
     /**
      * 密码模式的授权请求
-     * 
+     *
      * @return
      */
-    @PostMapping(params = { "grant_type=password" })
+    @PostMapping(params = {"grant_type=password"})
     public ResponseEntity<Map<String, ?>> postAccessToken(
-            Authentication clientAuthentication, // client的信息
-            @RequestParam("username") String username,
-            @RequestParam("password") String password,
-            @RequestParam("scope") String scope) {
+        Authentication clientAuthentication, // client的信息
+        @RequestParam("username") String username,
+        @RequestParam("password") String password,
+        @RequestParam("scope") String scope) {
         ClientDetails client = clientDetailsService.loadClientByClientId(clientAuthentication.getName());
         Set<String> scopes = Sets.newHashSet(scope.split(SPACE));
         // 验证scope
@@ -82,7 +79,6 @@ public class TokenEndpoint {
 
         // 构建授权结果
         DefaultApprovalResult approvalResult = new DefaultApprovalResult();
-        approvalResult = new DefaultApprovalResult();
         approvalResult.setClientId(client.getClientId());
         approvalResult.setScope(scopes);
         OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(approvalResult, user);
@@ -91,67 +87,51 @@ public class TokenEndpoint {
         OAuth2AccessToken accessToken = accessTokenService.create(authentication);
 
         // 返回token
-        return ResponseEntity.ok(converToAccessTokenResponse(accessToken));
+        return ResponseEntity.ok(OAuth2AccessTokenUtils.converterToken2Map(accessToken));
     }
 
     /**
      * 授权码模式的授权请求
-     * 
-     * @param principal
+     *
+     * @param client
      * @param code
      * @param redirectUri
      * @return
      */
-    @PostMapping(params = { "code", "grant_type=authorization_code" })
+    @PostMapping(params = {"code", "grant_type=authorization_code"})
     public ResponseEntity<Map<String, ?>> postAccessToken(
-            Principal principal,
-            @RequestParam("code") String code,
-            @RequestParam("redirect_uri") String redirectUri) {
+        Authentication client,
+        @RequestParam("code") String code,
+        @RequestParam("redirect_uri") String redirectUri) {
         OAuth2Authentication authentication = authorizationCodeService.get(code);
-        // TODO 验证client是否匹配
-        // TODO 验证RedirectUri
+        // 验证client是否匹配
+        if (!StringUtils.equals(client.getName(), authentication.getClientId())) {
+            throw new RequestValidationException("授权码校验错误");
+        }
+
+        // TODO 验证RedirectUri是否匹配
+
+        // 没有找到指定的授权码信息时报错
         if (Objects.isNull(authentication)) {
             throw new RequestValidationException("指定授权码不正确");
         } else {
             OAuth2AccessToken accessToken = accessTokenService.create(authentication);
             authorizationCodeService.delete(code);
-            return ResponseEntity.ok(converToAccessTokenResponse(accessToken));
+            return ResponseEntity.ok(OAuth2AccessTokenUtils.converterToken2Map(accessToken));
         }
     }
 
     /**
      * 刷新token
-     * 
+     *
      * @param refreshToken
      * @param scope
      * @return
      */
-    @PostMapping(params = { "grant_type=refresh_token" })
+    @PostMapping(params = {"grant_type=refresh_token"})
     public ResponseEntity<Map<String, ?>> refreshToken(
-            @RequestParam("refresh_token") String refreshToken,
-            @RequestParam("scope") String scope) {
+        @RequestParam("refresh_token") String refreshToken,
+        @RequestParam("scope") String scope) {
         return null;
     }
-
-    /**
-     * 转换accessToken到map
-     * 
-     * @param authentication
-     * @return
-     */
-    private Map<String, ?> converToAccessTokenResponse(OAuth2AccessToken accessToken) {
-        long expiresIn = -1;
-        Instant expiresAt = accessToken.getExpiresAt();
-        if (expiresAt != null) {
-            expiresIn = ChronoUnit.SECONDS.between(Instant.now(), expiresAt);
-        }
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("access_token", accessToken.getTokenValue());
-        result.put("token_type", accessToken.getTokenType().getValue());
-        result.put("expires_in", expiresIn);
-        // TODO refreshToken策略 result.put("refresh_token", "");
-        // TODO scope策略 result.put("scope", ""); accessToken.getScopes();
-        return result;
-    }
-
 }

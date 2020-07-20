@@ -1,5 +1,12 @@
 package com.xyyh.authorization.web;
 
+import com.google.common.collect.Sets;
+import com.xyyh.authorization.client.ClientDetails;
+import com.xyyh.authorization.client.ClientDetailsService;
+import com.xyyh.authorization.core.*;
+import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
+import com.xyyh.authorization.provider.DefaultUserApprovalHandler;
+import com.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,32 +25,14 @@ import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.collect.Sets;
-import com.xyyh.authorization.client.ClientDetails;
-import com.xyyh.authorization.client.ClientDetailsService;
-import com.xyyh.authorization.core.ApprovalResult;
-import com.xyyh.authorization.core.OAuth2AccessTokenService;
-import com.xyyh.authorization.core.OAuth2Authentication;
-import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
-import com.xyyh.authorization.core.OAuth2RequestValidator;
-import com.xyyh.authorization.core.UserApprovalHandler;
-import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
-import com.xyyh.authorization.provider.DefaultUserApprovalHandler;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
+import java.util.*;
 
-import static org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType.*;
+import static org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType.CODE;
+import static org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationResponseType.TOKEN;
 
 @RequestMapping("/oauth/authorize")
-@SessionAttributes({ "authorizationRequest" })
+@SessionAttributes({"authorizationRequest"})
 public class AuthorizationEndpoint {
 
     private static final String OAUTH2_AUTHORIZATION_REQUEST = "authorizationRequest";
@@ -74,11 +63,11 @@ public class AuthorizationEndpoint {
      */
     @GetMapping
     public ModelAndView authorize(
-            HttpServletRequest request,
-            Map<String, Object> model,
-            @RequestParam MultiValueMap<String, String> params,
-            SessionStatus sessionStatus,
-            Authentication principal) {
+        HttpServletRequest request,
+        Map<String, Object> model,
+        @RequestParam MultiValueMap<String, String> params,
+        SessionStatus sessionStatus,
+        Authentication principal) {
         OAuth2AuthorizationRequest authorizationRequest = createRequest(request.getRequestURL().toString(), params);
         // 加载client信息
         ClientDetails client = clientDetailsService.loadClientByClientId(authorizationRequest.getClientId());
@@ -96,7 +85,7 @@ public class AuthorizationEndpoint {
     }
 
     /**
-     * 提交授权验证请求
+     * 提交授权验证请求,并返回授权验证结果
      *
      * @param approvalParameters 授权验证参数
      * @param model
@@ -106,12 +95,12 @@ public class AuthorizationEndpoint {
      */
     @PostMapping
     public View approveOrDeny(
-            @RequestParam Map<String, String> approvalParameters,
-            Map<String, ?> model,
-            SessionStatus sessionStatus,
-            Authentication principal) {
+        @RequestParam Map<String, String> approvalParameters,
+        Map<String, ?> model,
+        SessionStatus sessionStatus,
+        Authentication principal) {
         OAuth2AuthorizationRequest authorizationRequest = (OAuth2AuthorizationRequest) model
-                .get(OAUTH2_AUTHORIZATION_REQUEST);
+            .get(OAUTH2_AUTHORIZATION_REQUEST);
 
         // 获取用户授权结果
         ApprovalResult approvalResult = userApprovalHandler.approval(authorizationRequest, approvalParameters);
@@ -134,30 +123,30 @@ public class AuthorizationEndpoint {
 
     /**
      * 创建简易模式跳转请求
-     * 
-     * @param request   授权请求
-     * @param result    授权结果
-     * @param principal 授权用户
+     *
+     * @param request            授权请求
+     * @param result             授权结果
+     * @param userAuthentication 授权用户
      * @return
      */
     private View getImplicitGrantResponse(OAuth2AuthorizationRequest request, ApprovalResult result,
-            Authentication userAuthentication) {
+                                          Authentication userAuthentication) {
         OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(result, userAuthentication);
         OAuth2AccessToken accessToken = accessTokenService.create(authentication);
-        Map<String, ?> fragment = converToAccessTokenResponse(accessToken);
+        Map<String, ?> fragment = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
         return buildRedirectView(request.getRedirectUri(), null, fragment);
     }
 
     /**
      * 创建授权码请求的view
-     * 
+     *
      * @param result
      * @return
      */
     private View getAuthorizationCodeResponse(
-            OAuth2AuthorizationRequest request,
-            ApprovalResult result,
-            Authentication principal) {
+        OAuth2AuthorizationRequest request,
+        ApprovalResult result,
+        Authentication principal) {
         Map<String, String> query = new LinkedHashMap<>();
         String state = request.getState();
         if (StringUtils.isNotEmpty(state)) {
@@ -171,7 +160,7 @@ public class AuthorizationEndpoint {
 
     /**
      * 进行请求预检
-     * 
+     *
      * @param authorizationRequest
      * @param client
      * @return
@@ -183,9 +172,10 @@ public class AuthorizationEndpoint {
 
     /**
      * 创建跳转请求
-     * 
-     * @param uri   要跳转的url
-     * @param query 需要额外增加的查询参数
+     *
+     * @param uri      要跳转的url
+     * @param query    需要额外增加的查询参数
+     * @param fragment hash部分的参数列表
      * @return
      */
     private View buildRedirectView(String uri, Map<String, String> query, Map<String, ?> fragment) {
@@ -215,19 +205,26 @@ public class AuthorizationEndpoint {
         return redirectView;
     }
 
+    /**
+     * 根据传入参数，创建授权请求信息
+     *
+     * @param uri
+     * @param parameters
+     * @return
+     */
     private OAuth2AuthorizationRequest createRequest(String uri, MultiValueMap<String, String> parameters) {
         Map<String, Object> additionalParameters = new HashMap<String, Object>();
         String reponseType = parameters.getFirst(OAuth2ParameterNames.RESPONSE_TYPE);
         parameters.entrySet().stream()
-                .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
-                        !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
-                        !e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI) &&
-                        !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
-                        !e.getKey().equals(OAuth2ParameterNames.STATE))
-                .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
+            .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
+                !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
+                !e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI) &&
+                !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
+                !e.getKey().equals(OAuth2ParameterNames.STATE))
+            .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
         String scope = parameters.getFirst(OAuth2ParameterNames.SCOPE);
         Set<String> scopes = StringUtils.isBlank(scope) ? Collections.emptySet()
-                : Sets.newHashSet(StringUtils.split(scope, SPACE));
+            : Sets.newHashSet(StringUtils.split(scope, SPACE));
         Builder requestBuilder = null;
         if (CODE.getValue().equals(reponseType)) {
             requestBuilder = OAuth2AuthorizationRequest.authorizationCode();
@@ -235,27 +232,12 @@ public class AuthorizationEndpoint {
             requestBuilder = OAuth2AuthorizationRequest.implicit();
         }
         return requestBuilder
-                .authorizationUri(uri)
-                .clientId(parameters.getFirst(OAuth2ParameterNames.CLIENT_ID))
-                .redirectUri(parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI))
-                .scopes(scopes)
-                .state(parameters.getFirst(OAuth2ParameterNames.STATE))
-                .additionalParameters(additionalParameters)
-                .build();
-    }
-
-    // TODO 这个是重复的
-    private Map<String, ?> converToAccessTokenResponse(OAuth2AccessToken accessToken) {
-        long expiresIn = -1;
-        Instant expiresAt = accessToken.getExpiresAt();
-        if (expiresAt != null) {
-            expiresIn = ChronoUnit.SECONDS.between(Instant.now(), expiresAt);
-        }
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("access_token", accessToken.getTokenValue());
-        result.put("token_type", accessToken.getTokenType().getValue());
-        result.put("expires_in", expiresIn);
-        result.put("refresh_token", "");
-        return result;
+            .authorizationUri(uri)
+            .clientId(parameters.getFirst(OAuth2ParameterNames.CLIENT_ID))
+            .redirectUri(parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI))
+            .scopes(scopes)
+            .state(parameters.getFirst(OAuth2ParameterNames.STATE))
+            .additionalParameters(additionalParameters)
+            .build();
     }
 }

@@ -1,7 +1,6 @@
 package com.xyyh.authorization.controller;
 
-import java.security.Principal;
-
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestController {
 
     @GetMapping
-    public String test(Principal principal) {
+    public String test(@AuthenticationPrincipal Object principal) {
         System.out.println(principal);
         return "test";
     }
