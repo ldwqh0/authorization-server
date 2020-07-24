@@ -11,4 +11,6 @@ public interface OAuth2Authentication extends Authentication, CredentialsContain
 
     public Set<String> getScopes();
 
+    public String getRedirectUri();
+
 }

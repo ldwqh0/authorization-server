@@ -32,4 +32,6 @@ public interface ApprovalResult extends Serializable {
      */
     public Set<String> getScope();
 
+    public String getRedirectUri();
+
 }

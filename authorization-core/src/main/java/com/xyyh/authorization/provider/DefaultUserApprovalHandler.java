@@ -5,10 +5,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-
 import com.xyyh.authorization.core.ApprovalResult;
 import com.xyyh.authorization.core.UserApprovalHandler;
+import com.xyyh.authorization.core.endpoint.OpenidAuthorizationRequest;
 
 /**
  * 默认的授权处理器
@@ -21,7 +20,7 @@ public class DefaultUserApprovalHandler implements UserApprovalHandler {
     private String scopePrefix = "scope.";
 
     @Override
-    public ApprovalResult approval(OAuth2AuthorizationRequest request, Map<String, String> approvalParameters) {
+    public ApprovalResult approval(OpenidAuthorizationRequest request, Map<String, String> approvalParameters) {
         Set<String> requestScopes = request.getScopes();
         Set<String> approvedScopes = new HashSet<String>(); // 授权允许的scope
         for (String requestScope : requestScopes) {

@@ -44,6 +44,7 @@ public class DefaultApprovalResult implements ApprovalResult {
         this.clientId = clientId;
     }
 
+    @Override
     public String getRedirectUri() {
         return redirectUri;
     }

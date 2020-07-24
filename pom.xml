@@ -50,5 +50,6 @@
   <modules>
     <module>authorization-core</module>
     <module>authorization-server</module>
+    <module>authorization-configuration</module>
   </modules>
 </project>

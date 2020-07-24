@@ -13,6 +13,8 @@
 	</p>
 	<form id="confirmationForm" name="confirmationForm" action="authorize"
 		method="post">
+		<!-- 这个参数的目的是为了区分某个请求是否用户的授权响应 -->
+		<input name="user_oauth_approval" value="true" type="hidden">
 		<input type="hidden" th:name="${_csrf.parameterName}"
 			th:value="${_csrf.token}" />
 		<ul>

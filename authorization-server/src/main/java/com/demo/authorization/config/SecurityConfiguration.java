@@ -1,4 +1,4 @@
-package com.xyyh.authorization.config;
+package com.demo.authorization.config;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -42,6 +42,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             public OAuth2AuthenticatedPrincipal introspect(String token) {
                 OAuth2Authentication authentication = oAuth2AccessTokenService.getAuthentication(token);
                 Authentication user = (Authentication) authentication.getDetails();
+                @SuppressWarnings("unchecked")
                 Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>) authentication
                         .getAuthorities();
                 String name = authentication.getName();
@@ -55,9 +56,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//        super.configure(auth);
         PasswordEncoder passwordEncoder = passwordEncoder();
-
         auth.inMemoryAuthentication()
                 .withUser("admin")
                 .password(passwordEncoder.encode("123456"))

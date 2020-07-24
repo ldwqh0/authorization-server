@@ -25,7 +25,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     @Override
     public boolean isAuthenticated() {
         return this.approvalResult.isApprovaled()
-            && (Objects.isNull(userAuthentication) || userAuthentication.isAuthenticated());
+                && (Objects.isNull(userAuthentication) || userAuthentication.isAuthenticated());
     }
 
     public boolean isClientOnly() {
@@ -33,7 +33,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     }
 
     public DefaultOAuth2AuthenticationToken(ApprovalResult result,
-                                            Authentication userAuthentication) {
+            Authentication userAuthentication) {
         this.approvalResult = result;
         this.userAuthentication = userAuthentication;
     }
@@ -53,12 +53,14 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public Object getPrincipal() {
-        return this.userAuthentication == null ? this.approvalResult.getClientId() : this.userAuthentication.getPrincipal();
+        return this.userAuthentication == null ? this.approvalResult.getClientId()
+                : this.userAuthentication.getPrincipal();
     }
 
     @Override
     public String getName() {
-        return Objects.isNull(this.userAuthentication) ? this.approvalResult.getClientId() : this.userAuthentication.getName();
+        return Objects.isNull(this.userAuthentication) ? this.approvalResult.getClientId()
+                : this.userAuthentication.getName();
     }
 
     @Override
@@ -89,8 +91,13 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     @Override
     public void eraseCredentials() {
         if (this.userAuthentication != null
-            && CredentialsContainer.class.isAssignableFrom(this.userAuthentication.getClass())) {
+                && CredentialsContainer.class.isAssignableFrom(this.userAuthentication.getClass())) {
             CredentialsContainer.class.cast(this.userAuthentication).eraseCredentials();
         }
+    }
+
+    @Override
+    public String getRedirectUri() {
+        return approvalResult.getRedirectUri();
     }
 }
