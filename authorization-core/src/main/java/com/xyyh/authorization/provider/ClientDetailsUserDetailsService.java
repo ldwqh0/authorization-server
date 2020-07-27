@@ -35,6 +35,10 @@ class ClientUserDetails implements UserDetails {
         this.clientDetails = clientDetails;
     }
 
+    public ClientDetails getClientDetails() {
+        return clientDetails;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();

@@ -10,17 +10,24 @@ public class BaseClientDetails implements ClientDetails {
     private String clientSecret;
     private Set<String> scope;
     private Set<String> registeredRedirectUris;
+    private Set<String> authorizedGrantTypes;
 
     public BaseClientDetails() {
         super();
     }
 
-    public BaseClientDetails(String clientId, String clientSecret, Set<String> scope, Set<String> registeredRedirectUris) {
+    public BaseClientDetails(
+            String clientId,
+            String clientSecret,
+            Set<String> scope,
+            Set<String> registeredRedirectUris,
+            Set<String> authorizedGrantTypes) {
         super();
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.scope = scope;
         this.registeredRedirectUris = registeredRedirectUris;
+        this.authorizedGrantTypes = authorizedGrantTypes;
     }
 
     @Override
@@ -57,6 +64,10 @@ public class BaseClientDetails implements ClientDetails {
 
     public void setScope(Set<String> scope) {
         this.scope = scope;
+    }
+
+    public void setAuthorizedGrantTypes(Set<String> authorizedGrantTypes) {
+        this.authorizedGrantTypes = authorizedGrantTypes;
     }
 
     @Override
@@ -96,9 +107,19 @@ public class BaseClientDetails implements ClientDetails {
         return true;
     }
 
+  
+
+
     @Override
     public String toString() {
-        return "BaseClientDetails [clientId=" + clientId + ", clientSecret=" + clientSecret + ", scope=" + scope + "]";
+        return "BaseClientDetails [clientId=" + clientId + ", clientSecret=" + clientSecret + ", scope=" + scope
+                + ", registeredRedirectUris=" + registeredRedirectUris + ", authorizedGrantTypes="
+                + authorizedGrantTypes + "]";
+    }
+
+    @Override
+    public Set<String> getAuthorizedGrantTypes() {
+        return this.authorizedGrantTypes;
     }
 
 }

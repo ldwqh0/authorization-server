@@ -18,7 +18,8 @@ public class Confc {
                 "app",
                 "123456",
                 Sets.newHashSet("openid"),
-                Sets.newHashSet("https://www.baidu.com")));
+                Sets.newHashSet("https://www.baidu.com"),
+                Sets.newHashSet("authorization_code")));
         return cds;
     }
 

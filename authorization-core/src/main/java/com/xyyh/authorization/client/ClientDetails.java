@@ -13,7 +13,7 @@ public interface ClientDetails extends Serializable {
     public String getClientId();
 
     /**
-     * 应用的蜜月
+     * 应用的密钥
      *
      * @return
      */
@@ -25,6 +25,8 @@ public interface ClientDetails extends Serializable {
      * @return
      */
     public Set<String> getScope();
+
+    public Set<String> getAuthorizedGrantTypes();
 
     public Set<String> getRegisteredRedirectUris();
 

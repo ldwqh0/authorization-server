@@ -49,7 +49,8 @@
   </build>
   <modules>
     <module>authorization-core</module>
-    <module>authorization-server</module>
     <module>authorization-configuration</module>
+    <module>samples/resource-server</module>
+    <module>samples/authorization-server</module>
   </modules>
 </project>

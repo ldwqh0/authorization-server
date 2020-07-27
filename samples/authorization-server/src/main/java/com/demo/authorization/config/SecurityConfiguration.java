@@ -33,6 +33,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
+//        http.oauth2ResourceServer().jwt().jwkSetUri("");
         http.oauth2ResourceServer().opaqueToken().introspector(introspector());
     }
 

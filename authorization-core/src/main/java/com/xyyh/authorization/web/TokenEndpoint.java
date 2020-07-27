@@ -1,8 +1,8 @@
 package com.xyyh.authorization.web;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.xyyh.authorization.client.ClientDetails;
-import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.core.OAuth2AccessTokenService;
 import com.xyyh.authorization.core.OAuth2Authentication;
 import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
@@ -11,14 +11,18 @@ import com.xyyh.authorization.exception.RequestValidationException;
 import com.xyyh.authorization.provider.DefaultApprovalResult;
 import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
 import com.xyyh.authorization.utils.OAuth2AccessTokenUtils;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,7 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-@RequestMapping("/oauth/token")
+@RequestMapping("/oauth2/token")
 public class TokenEndpoint {
 
     private static final String SPACE = " ";
@@ -44,9 +48,6 @@ public class TokenEndpoint {
     @Autowired
     private OAuth2RequestScopeValidator oAuth2RequestValidator;
 
-    @Autowired
-    private ClientDetailsService clientDetailsService;
-
     // @GetMapping
     // 暂不支持get请求
     public Map<String, ?> getAccessToken(
@@ -54,7 +55,8 @@ public class TokenEndpoint {
             @RequestParam("grant_type") String grantType,
             @RequestParam("code") String code,
             @RequestParam("redirect_uri") String redirectUri) {
-        return postAccessToken(principal, code, redirectUri);
+        return null;
+//        return postAccessToken(principal, code, redirectUri);
     }
 
     /**
@@ -64,30 +66,36 @@ public class TokenEndpoint {
      */
     @PostMapping(params = { "grant_type=password" })
     public ResponseEntity<Map<String, ?>> postAccessToken(
-            Authentication clientAuthentication, // client的信息
+            @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client, // client的信息
             @RequestParam("username") String username,
             @RequestParam("password") String password,
             @RequestParam("scope") String scope) {
-        ClientDetails client = clientDetailsService.loadClientByClientId(clientAuthentication.getName());
-        Set<String> scopes = Sets.newHashSet(scope.split(SPACE));
+        // 验证grant type
+        validGrantTypes(client, "password");
+
         // 验证scope
+        Set<String> scopes = Sets.newHashSet(scope.split(SPACE));
         oAuth2RequestValidator.validateScope(scopes, client);
 
         // 认证用户
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
         Authentication user = this.userAuthenticationManager.authenticate(token);
+        // 如果用户授权失败
+        if (user.isAuthenticated()) {
+            // 构建授权结果
+            DefaultApprovalResult approvalResult = new DefaultApprovalResult();
+            approvalResult.setClientId(client.getClientId());
+            approvalResult.setScope(scopes);
+            OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(approvalResult, user);
 
-        // 构建授权结果
-        DefaultApprovalResult approvalResult = new DefaultApprovalResult();
-        approvalResult.setClientId(client.getClientId());
-        approvalResult.setScope(scopes);
-        OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(approvalResult, user);
-
-        // 生成并保存token
-        OAuth2AccessToken accessToken = accessTokenService.create(authentication);
-
-        // 返回token
-        return ResponseEntity.ok(OAuth2AccessTokenUtils.converterToken2Map(accessToken));
+            // 生成并保存token
+            OAuth2AccessToken accessToken = accessTokenService.create(authentication);
+            // 返回token
+            return ResponseEntity.ok(OAuth2AccessTokenUtils.converterToken2Map(accessToken));
+        } else {
+            // TODO 用户名密码验证失败待处理
+            return null;
+        }
     }
 
     /**
@@ -100,32 +108,39 @@ public class TokenEndpoint {
      */
     @PostMapping(params = { "code", "grant_type=authorization_code" })
     @ResponseBody
-    public Map<String, ?> postAccessToken(
-            @AuthenticationPrincipal Authentication client,
+    public ResponseEntity<Map<String, ?>> postAccessToken(
+            @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
             @RequestParam("code") String code,
             @RequestParam("redirect_uri") String redirectUri) {
+
+        // 验证grant type
+        validGrantTypes(client, "authorization_code");
+
+        // 验证code
         OAuth2Authentication authentication = authorizationCodeService.get(code);
         if (Objects.isNull(authentication)) {
-            throw new RequestValidationException("adf");
+            throw new RequestValidationException("invalid_grant");
         }
-
-        // 验证client是否匹配
-        if (!StringUtils.equals(client.getName(), authentication.getClientId())) {
-            throw new RequestValidationException("授权码校验错误");
+        // 验证client是否匹配指定的client
+        if (!StringUtils.equals(client.getClientId(), authentication.getClientId())) {
+            throw new RequestValidationException("invalid_grant");
         }
         // 颁发token时，验证RedirectUri是否匹配
         // 颁发token时，redirect uri 必须和请求的redirect uri 一致
         if (!StringUtils.equals(redirectUri, authentication.getRedirectUri())) {
-            throw new RequestValidationException("Redirect URI 验证错误");
+            throw new RequestValidationException("invalid_grant");
         }
 
         // 没有找到指定的授权码信息时报错
-        if (Objects.isNull(authentication)) {
-            throw new RequestValidationException("指定授权码不正确");
-        } else {
-            OAuth2AccessToken accessToken = accessTokenService.create(authentication);
-            authorizationCodeService.delete(code);
-            return OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+        OAuth2AccessToken accessToken = accessTokenService.create(authentication);
+        authorizationCodeService.delete(code);
+        return ResponseEntity.ok(OAuth2AccessTokenUtils.converterToken2Map(accessToken));
+    }
+
+    private void validGrantTypes(ClientDetails client, String grantType) {
+        Set<String> grantTypes = client.getAuthorizedGrantTypes();
+        if (!CollectionUtils.containsAny(grantTypes, grantTypes)) {
+            throw new RequestValidationException("unauthorized_client");
         }
     }
 
@@ -142,4 +157,30 @@ public class TokenEndpoint {
             @RequestParam("scope") String scope) {
         return null;
     }
+
+    /**
+     * 其它不支持的授权类型
+     * 
+     * @return
+     */
+    @PostMapping
+    public ResponseEntity<Map<String, ?>> otherwise() {
+        Map<String, Object> response = Maps.newHashMap();
+        response.put("error", "unsupported_grant_type");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    /**
+     * 处理异常请求
+     * 
+     * @param ex
+     * @return
+     */
+    @ExceptionHandler({ RequestValidationException.class })
+    public ResponseEntity<Map<String, ?>> handleException(Exception ex) {
+        Map<String, Object> response = Maps.newHashMap();
+        response.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
 }

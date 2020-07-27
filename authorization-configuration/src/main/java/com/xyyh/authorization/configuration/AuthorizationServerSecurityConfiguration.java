@@ -22,8 +22,10 @@ public class AuthorizationServerSecurityConfiguration extends WebSecurityConfigu
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.requestMatchers().antMatchers("/oauth/token");
-        http.authorizeRequests().anyRequest().authenticated();
+        http.requestMatchers().antMatchers("/oauth2/token", "/oauth2/certs");
+        http.authorizeRequests()
+                .antMatchers("/oauth2/certs").permitAll()
+                .anyRequest().authenticated();
         http.formLogin().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
         http.httpBasic();

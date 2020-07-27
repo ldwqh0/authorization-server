@@ -26,7 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @SessionAttributes({ "authorizationRequest" })
-@RequestMapping("/oauth/authorize")
+@RequestMapping("/oauth2/authorize")
 public class AuthorizationEndpoint {
 
     private static final String OAUTH2_AUTHORIZATION_REQUEST = "authorizationRequest";
