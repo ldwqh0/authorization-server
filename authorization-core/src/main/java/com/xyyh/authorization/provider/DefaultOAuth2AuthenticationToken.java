@@ -2,6 +2,8 @@ package com.xyyh.authorization.provider;
 
 import com.xyyh.authorization.core.ApprovalResult;
 import com.xyyh.authorization.core.OAuth2Authentication;
+
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
@@ -75,7 +77,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-
+        throw new NotImplementedException("the method is not implemented");
     }
 
     @Override

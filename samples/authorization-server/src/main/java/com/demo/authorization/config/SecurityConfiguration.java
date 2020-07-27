@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,7 +41,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             @Override
             public OAuth2AuthenticatedPrincipal introspect(String token) {
                 OAuth2Authentication authentication = oAuth2AccessTokenService.getAuthentication(token);
-                Authentication user = (Authentication) authentication.getDetails();
+//                Authentication user = (Authentication) authentication.getDetails();
                 @SuppressWarnings("unchecked")
                 Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>) authentication
                         .getAuthorities();
