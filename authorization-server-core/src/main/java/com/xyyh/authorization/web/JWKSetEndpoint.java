@@ -8,12 +8,17 @@ import com.nimbusds.jose.jwk.JWKSet;
 
 import net.minidev.json.JSONObject;
 
+/**
+ * JWK set endpoint
+ *
+ * @see
+ */
 @RequestMapping("/oauth2/certs")
-public class KeySetEndpoint {
+public class JWKSetEndpoint {
 
     private final JWKSet keyset;
 
-    public KeySetEndpoint(JWKSet keyset) {
+    public JWKSetEndpoint(JWKSet keyset) {
         this.keyset = keyset;
     }
 

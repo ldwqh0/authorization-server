@@ -22,7 +22,7 @@ import com.xyyh.authorization.provider.DefaultUserApprovalHandler;
 import com.xyyh.authorization.provider.InMemoryAuthorizationCodeService;
 import com.xyyh.authorization.provider.InMemoryOAuth2AccessTokenService;
 import com.xyyh.authorization.web.AuthorizationEndpoint;
-import com.xyyh.authorization.web.KeySetEndpoint;
+import com.xyyh.authorization.web.JWKSetEndpoint;
 import com.xyyh.authorization.web.TokenEndpoint;
 import com.xyyh.authorization.web.TokenIntrospectionEndpoint;
 
@@ -46,8 +46,8 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    public KeySetEndpoint keySetEndpoint() throws JOSEException {
-        return new KeySetEndpoint(keyset());
+    public JWKSetEndpoint keySetEndpoint() throws JOSEException {
+        return new JWKSetEndpoint(keyset());
     }
 
     @Bean

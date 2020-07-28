@@ -15,7 +15,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
@@ -23,9 +26,11 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-@SessionAttributes({ "authorizationRequest" })
+@SessionAttributes({"authorizationRequest"})
 @RequestMapping("/oauth2/authorize")
 public class AuthorizationEndpoint {
 
@@ -61,11 +66,11 @@ public class AuthorizationEndpoint {
 
     @RequestMapping
     public ModelAndView authorize(
-            HttpServletRequest request,
-            Map<String, Object> model,
-            @RequestParam MultiValueMap<String, String> params,
-            SessionStatus sessionStatus,
-            Authentication userAuthentication) {
+        HttpServletRequest request,
+        Map<String, Object> model,
+        @RequestParam MultiValueMap<String, String> params,
+        SessionStatus sessionStatus,
+        Authentication userAuthentication) {
         OpenidAuthorizationRequest authorizationRequest = createRequest(request.getRequestURL().toString(), params);
         // 加载client信息
         ClientDetails client = clientDetailsService.loadClientByClientId(authorizationRequest.getClientId());
@@ -95,14 +100,14 @@ public class AuthorizationEndpoint {
      * @param userAuthentication 当前用户信息
      * @return
      */
-    @PostMapping(params = { USER_OAUTH_APPROVAL })
+    @PostMapping(params = {USER_OAUTH_APPROVAL})
     public View approveOrDeny(
-            @RequestParam Map<String, String> approvalParameters,
-            Map<String, ?> model,
-            SessionStatus sessionStatus,
-            Authentication userAuthentication) {
+        @RequestParam Map<String, String> approvalParameters,
+        Map<String, ?> model,
+        SessionStatus sessionStatus,
+        Authentication userAuthentication) {
         OpenidAuthorizationRequest authorizationRequest = (OpenidAuthorizationRequest) model
-                .get(OAUTH2_AUTHORIZATION_REQUEST);
+            .get(OAUTH2_AUTHORIZATION_REQUEST);
 
         // 获取用户授权结果
         ApprovalResult approvalResult = userApprovalHandler.approval(authorizationRequest, approvalParameters);
@@ -115,6 +120,7 @@ public class AuthorizationEndpoint {
         if (OpenidAuthorizationFlow.CODE.equals(flow)) {
             return getCodeFlowResponse(authorizationRequest, approvalResult, userAuthentication);
         } else if (OpenidAuthorizationFlow.IMPLICIT.equals(flow)) {
+            // 简易模式的token请求 https://tools.ietf.org/html/rfc6749#section-4.2
             return getImplicitFlowResponse(authorizationRequest, approvalResult, userAuthentication);
         } else if (OpenidAuthorizationFlow.HYBRID.equals(flow)) {
             return getHybridFlow(authorizationRequest, approvalResult, userAuthentication);
@@ -131,7 +137,7 @@ public class AuthorizationEndpoint {
      * @return
      */
     private View getImplicitFlowResponse(OpenidAuthorizationRequest request, ApprovalResult result,
-            Authentication userAuthentication) {
+                                         Authentication userAuthentication) {
         OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(result, userAuthentication);
         OAuth2AccessToken accessToken = accessTokenService.create(authentication);
         Map<String, ?> fragment = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
@@ -139,7 +145,6 @@ public class AuthorizationEndpoint {
     }
 
     /**
-     * 
      * 创建授权码请求的view
      *
      * @param request
@@ -148,9 +153,9 @@ public class AuthorizationEndpoint {
      * @return
      */
     private View getCodeFlowResponse(
-            OpenidAuthorizationRequest request,
-            ApprovalResult result,
-            Authentication userAuthentication) {
+        OpenidAuthorizationRequest request,
+        ApprovalResult result,
+        Authentication userAuthentication) {
         Map<String, String> query = new LinkedHashMap<>();
         String state = request.getState();
         if (StringUtils.isNotEmpty(state)) {
@@ -164,14 +169,14 @@ public class AuthorizationEndpoint {
 
     /**
      * 返回混合模式认证的视图
-     * 
+     *
      * @param authorizationRequest 授权请求
      * @param approvalResult       用户授权结果
      * @param userAuthentication   用户信息
      * @return
      */
     private View getHybridFlow(OpenidAuthorizationRequest authorizationRequest, ApprovalResult approvalResult,
-            Authentication userAuthentication) {
+                               Authentication userAuthentication) {
 
         return null;
     }
@@ -225,7 +230,7 @@ public class AuthorizationEndpoint {
 
     /**
      * 根据传入参数，创建授权请求信息
-     * 
+     *
      * @param uri
      * @param parameters
      * @return
@@ -233,21 +238,21 @@ public class AuthorizationEndpoint {
     private OpenidAuthorizationRequest createRequest(String uri, MultiValueMap<String, String> parameters) {
         Map<String, Object> additionalParameters = new HashMap<String, Object>();
         parameters.entrySet().stream()
-                .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
-                        !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
-                        !e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI) &&
-                        !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
-                        !e.getKey().equals(OAuth2ParameterNames.STATE))
-                .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
+            .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
+                !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
+                !e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI) &&
+                !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
+                !e.getKey().equals(OAuth2ParameterNames.STATE))
+            .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
         return OpenidAuthorizationRequest.builder()
-                .responseType(parameters.get(OAuth2ParameterNames.RESPONSE_TYPE))
-                .authorizationRequestUri(uri)
-                .clientId(parameters.getFirst(OAuth2ParameterNames.CLIENT_ID))
-                .redirectUri(parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI))
-                .scopes(parameters.get(OAuth2ParameterNames.SCOPE))
-                .state(parameters.getFirst(OAuth2ParameterNames.STATE))
-                .additionalParameters(additionalParameters)
-                .build();
+            .responseType(parameters.get(OAuth2ParameterNames.RESPONSE_TYPE))
+            .authorizationRequestUri(uri)
+            .clientId(parameters.getFirst(OAuth2ParameterNames.CLIENT_ID))
+            .redirectUri(parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI))
+            .scopes(parameters.get(OAuth2ParameterNames.SCOPE))
+            .state(parameters.getFirst(OAuth2ParameterNames.STATE))
+            .additionalParameters(additionalParameters)
+            .build();
     }
 
 }

@@ -1,16 +1,20 @@
 package com.xyyh.authorization.utils;
 
+import com.google.common.collect.Maps;
+import com.nimbusds.oauth2.sdk.TokenIntrospectionErrorResponse;
+import com.nimbusds.oauth2.sdk.TokenIntrospectionResponse;
+import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
+import com.nimbusds.oauth2.sdk.token.BearerTokenError;
+import com.xyyh.authorization.core.OAuth2Authentication;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-
-import com.google.common.collect.Maps;
-import com.xyyh.authorization.core.OAuth2Authentication;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
 public interface OAuth2AccessTokenUtils {
@@ -34,22 +38,20 @@ public interface OAuth2AccessTokenUtils {
     }
 
     /**
-     * 
      * 转换 Introspection Response
-     * 
-     * @see <a href=
-     *      "https://tools.ietf.org/html/rfc7662#section-2.2">https://tools.ietf.org/html/rfc7662#section-2.2</a>
+     *
      * @param token
      * @param authentication
      * @return
+     * @see <a href=
+     * "https://tools.ietf.org/html/rfc7662#section-2.2">https://tools.ietf.org/html/rfc7662#section-2.2</a>
      */
     public static Map<String, ?> converterToken2IntrospectionResponse(OAuth2AccessToken token,
-            OAuth2Authentication authentication) {
+                                                                      OAuth2Authentication authentication) {
         Map<String, Object> response = newLinkedHashMap();
         // 如果没有找到相关的token直接返回false
         if (Objects.isNull(token)) {
             response.put("active", Boolean.FALSE);
-            return response;
         } else {
             response.put("active", Boolean.TRUE);
             response.put("scope", StringUtils.join(token.getScopes(), SPACE));
@@ -75,8 +77,16 @@ public interface OAuth2AccessTokenUtils {
             // TODO 签发者
             // response.put("iss", value)
             // response.put("jti", value)
-            return response;
         }
+        return response;
+    }
 
+    static TokenIntrospectionResponse converterAccessToken2IntrospectionResponse(OAuth2AccessToken token,
+                                                                                 OAuth2Authentication authentication) {
+        if (Objects.isNull(token)) {
+            return new TokenIntrospectionErrorResponse(BearerTokenError.INVALID_TOKEN);
+        } else {
+            return new TokenIntrospectionSuccessResponse.Builder(Boolean.TRUE).build();
+        }
     }
 }
