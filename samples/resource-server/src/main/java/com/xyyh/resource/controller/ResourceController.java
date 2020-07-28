@@ -1,5 +1,6 @@
 package com.xyyh.resource.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,7 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ResourceController {
 
     @GetMapping
-    public String get() {
+    public String get(@AuthenticationPrincipal Object b) {
+        System.out.println(b);
         return "success";
     }
 

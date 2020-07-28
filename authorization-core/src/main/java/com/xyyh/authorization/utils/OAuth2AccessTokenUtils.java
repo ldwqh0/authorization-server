@@ -60,7 +60,7 @@ public interface OAuth2AccessTokenUtils {
 
             Instant expiresAt = token.getExpiresAt();
             if (expiresAt != null) {
-                response.put("exp", ChronoUnit.SECONDS.between(Instant.now(), expiresAt));
+                response.put("exp", expiresAt.getEpochSecond());
             }
             Instant issuedAt = token.getIssuedAt();
             if (issuedAt != null) {

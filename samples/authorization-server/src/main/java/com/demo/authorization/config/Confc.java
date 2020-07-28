@@ -20,6 +20,7 @@ public class Confc {
                 Sets.newHashSet("openid"),
                 Sets.newHashSet("https://www.baidu.com"),
                 Sets.newHashSet("authorization_code")));
+        cds.addClient(new BaseClientDetails("resource", "123456"));
         return cds;
     }
 

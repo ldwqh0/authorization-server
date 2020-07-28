@@ -22,7 +22,7 @@ public class AuthorizationServerSecurityConfiguration extends WebSecurityConfigu
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.requestMatchers().antMatchers("/oauth2/token", "/oauth2/certs");
+        http.requestMatchers().antMatchers("/oauth2/token", "/oauth2/certs", "/oauth2/token/introspection");
         http.authorizeRequests()
                 .antMatchers("/oauth2/certs").permitAll()
                 .anyRequest().authenticated();

@@ -24,6 +24,7 @@ import com.xyyh.authorization.provider.InMemoryOAuth2AccessTokenService;
 import com.xyyh.authorization.web.AuthorizationEndpoint;
 import com.xyyh.authorization.web.KeySetEndpoint;
 import com.xyyh.authorization.web.TokenEndpoint;
+import com.xyyh.authorization.web.TokenIntrospectionEndpoint;
 
 @Configuration
 public class AuthorizationServerConfiguration {
@@ -47,6 +48,11 @@ public class AuthorizationServerConfiguration {
     @Bean
     public KeySetEndpoint keySetEndpoint() throws JOSEException {
         return new KeySetEndpoint(keyset());
+    }
+
+    @Bean
+    public TokenIntrospectionEndpoint tokenIntrospectionEndpoint() {
+        return new TokenIntrospectionEndpoint();
     }
 
     /**

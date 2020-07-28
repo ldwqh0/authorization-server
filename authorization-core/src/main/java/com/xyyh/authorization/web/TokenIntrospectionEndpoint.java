@@ -1,9 +1,6 @@
 package com.xyyh.authorization.web;
 
 import java.util.Map;
-import java.util.Objects;
-
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +23,7 @@ import com.xyyh.authorization.utils.OAuth2AccessTokenUtils;
  * @author LiDong
  *
  */
-@RequestMapping("/oauth2/token/introspect")
+@RequestMapping("/oauth2/token/introspection")
 public class TokenIntrospectionEndpoint {
 
     private static final String SPACE = " ";

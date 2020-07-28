@@ -16,6 +16,12 @@ public class BaseClientDetails implements ClientDetails {
         super();
     }
 
+    public BaseClientDetails(String clientId, String clientSecret) {
+        super();
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+    }
+
     public BaseClientDetails(
             String clientId,
             String clientSecret,
@@ -106,9 +112,6 @@ public class BaseClientDetails implements ClientDetails {
             return false;
         return true;
     }
-
-  
-
 
     @Override
     public String toString() {
