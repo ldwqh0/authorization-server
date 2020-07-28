@@ -42,13 +42,13 @@
     </dependency>
     <dependency>
       <groupId>com.xyyh.authorization</groupId>
-      <artifactId>authorization-core</artifactId>
+      <artifactId>authorization-server-core</artifactId>
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
       <groupId>com.xyyh.authorization</groupId>
-      <artifactId>authorization-configuration</artifactId>
+      <artifactId>authorization-server-configuration</artifactId>
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
   </dependencies>

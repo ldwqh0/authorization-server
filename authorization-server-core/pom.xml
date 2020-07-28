@@ -7,7 +7,7 @@
     <artifactId>authorization</artifactId>
     <version>1.0.0-SNAPSHOT</version>
   </parent>
-  <artifactId>authorization-core</artifactId>
+  <artifactId>authorization-server-core</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
