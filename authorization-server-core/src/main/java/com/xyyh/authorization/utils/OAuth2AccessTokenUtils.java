@@ -1,10 +1,6 @@
 package com.xyyh.authorization.utils;
 
 import com.google.common.collect.Maps;
-import com.nimbusds.oauth2.sdk.TokenIntrospectionErrorResponse;
-import com.nimbusds.oauth2.sdk.TokenIntrospectionResponse;
-import com.nimbusds.oauth2.sdk.TokenIntrospectionSuccessResponse;
-import com.nimbusds.oauth2.sdk.token.BearerTokenError;
 import com.xyyh.authorization.core.OAuth2Authentication;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
@@ -81,12 +77,4 @@ public interface OAuth2AccessTokenUtils {
         return response;
     }
 
-    static TokenIntrospectionResponse converterAccessToken2IntrospectionResponse(OAuth2AccessToken token,
-                                                                                 OAuth2Authentication authentication) {
-        if (Objects.isNull(token)) {
-            return new TokenIntrospectionErrorResponse(BearerTokenError.INVALID_TOKEN);
-        } else {
-            return new TokenIntrospectionSuccessResponse.Builder(Boolean.TRUE).build();
-        }
-    }
 }

@@ -1,10 +1,12 @@
 package com.xyyh.authorization.web;
 
+import com.google.common.collect.Maps;
 import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.core.*;
 import com.xyyh.authorization.core.endpoint.OpenidAuthorizationFlow;
 import com.xyyh.authorization.core.endpoint.OpenidAuthorizationRequest;
+import com.xyyh.authorization.exception.NoSuchClientException;
 import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
 import com.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -15,10 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
@@ -26,6 +25,8 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -72,8 +73,10 @@ public class AuthorizationEndpoint {
         SessionStatus sessionStatus,
         Authentication userAuthentication) {
         OpenidAuthorizationRequest authorizationRequest = createRequest(request.getRequestURL().toString(), params);
+        model.put(OAUTH2_AUTHORIZATION_REQUEST, authorizationRequest);
         // 加载client信息
         ClientDetails client = clientDetailsService.loadClientByClientId(authorizationRequest.getClientId());
+
         // 验证scope
         oAuth2RequestValidator.validateScope(authorizationRequest, client);
 
@@ -85,7 +88,6 @@ public class AuthorizationEndpoint {
         if (preCheck(authorizationRequest, client)) {
             return null;
         } else {
-            model.put(OAUTH2_AUTHORIZATION_REQUEST, authorizationRequest);
             // 如果预检没有通过，跳转到授权页面
             return new ModelAndView("/oauth/confirm_access", model);
         }
@@ -113,6 +115,7 @@ public class AuthorizationEndpoint {
         ApprovalResult approvalResult = userApprovalHandler.approval(authorizationRequest, approvalParameters);
 
         // TODO 如果授权通过
+        approvalResult.isApprovaled();
 
         // 获取请求流程
         OpenidAuthorizationFlow flow = authorizationRequest.getFlow();
@@ -253,6 +256,24 @@ public class AuthorizationEndpoint {
             .state(parameters.getFirst(OAuth2ParameterNames.STATE))
             .additionalParameters(additionalParameters)
             .build();
+    }
+
+
+    @ExceptionHandler({NoSuchClientException.class})
+    public View handleError(Exception ex, @SessionAttribute(OAUTH2_AUTHORIZATION_REQUEST) Object sessionStatus, HttpSession session) {
+//        OpenidAuthorizationRequest authorizationRequest = (OpenidAuthorizationRequest) model
+//            .get(OAUTH2_AUTHORIZATION_REQUEST);
+//        String uri = authorizationRequest.getRedirectUri();
+        Enumeration<String> s = session.getAttributeNames();
+        while (s.hasMoreElements()) {
+            System.out.println(s.nextElement());
+        }
+        Map<String, String> error = Maps.newHashMap();
+        if (ex instanceof NoSuchClientException) {
+            error.put("error", "unauthorized_client");
+        }
+        return buildRedirectView("https://www.baidu.com", error, null);
+//        return buildRedirectView(uri, error, null);
     }
 
 }
