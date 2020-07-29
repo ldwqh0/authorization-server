@@ -1,22 +1,19 @@
 package com.xyyh.authorization.core.endpoint;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.Sets;
+import java.io.Serializable;
+import java.util.*;
 
 public class OpenidAuthorizationRequest implements Serializable {
 
     private static final long serialVersionUID = 144721905123198109L;
+
+    public static final String RESPONSE_TYPE_CODE = "code";
+    public static final String RESPONSE_TYPE_ID_TOKEN = "id_token";
+    public static final String RESPONSE_TYPE_TOKEN = "token";
 
     private Set<String> responseTypes;
     private String authorizationUri;
@@ -30,7 +27,9 @@ public class OpenidAuthorizationRequest implements Serializable {
     private Map<String, Object> attributes;
 
     private OpenidAuthorizationRequest() {
-    };
+    }
+
+    ;
 
     public Set<String> getResponseTypes() {
         return responseTypes;
@@ -46,7 +45,7 @@ public class OpenidAuthorizationRequest implements Serializable {
 
     /**
      * 获取授权流
-     * 
+     *
      * @return
      */
     public OpenidAuthorizationFlow getFlow() {
@@ -95,7 +94,7 @@ public class OpenidAuthorizationRequest implements Serializable {
 
     public static class Builder {
         private OpenidAuthorizationRequest value = new OpenidAuthorizationRequest();
-        private static final Set<String> RESPONSE_TYPES = Sets.newHashSet("code", "id_token", "token");
+        private static final String[] RESPONSE_TYPES = new String[]{RESPONSE_TYPE_CODE, RESPONSE_TYPE_ID_TOKEN, RESPONSE_TYPE_TOKEN};
 
         private static final String SPACE = " ";
 
@@ -105,7 +104,9 @@ public class OpenidAuthorizationRequest implements Serializable {
         public Builder redirectUri(String redirectUri) {
             value.redirectUri = redirectUri;
             return this;
-        };
+        }
+
+        ;
 
         public Builder scopes(Collection<String> scopes) {
             for (String scope : scopes) {
@@ -137,7 +138,9 @@ public class OpenidAuthorizationRequest implements Serializable {
         public Builder authorizationRequestUri(String authorizationRequestUri) {
             value.authorizationRequestUri = authorizationRequestUri;
             return this;
-        };
+        }
+
+        ;
 
         public Builder attributes(Map<String, Object> attributes) {
             getAttributes().putAll(attributes);
@@ -161,9 +164,6 @@ public class OpenidAuthorizationRequest implements Serializable {
                 Set<String> responseTypes = getResponseTypes();
                 String[] responseTypeArray = StringUtils.split(responseType, " ");
                 for (String type : responseTypeArray) {
-                    if (!RESPONSE_TYPES.contains(type)) {
-                        throw new RuntimeException("The response type can not be accepted");
-                    }
                     responseTypes.add(type);
                 }
             }

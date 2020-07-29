@@ -20,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -141,8 +142,9 @@ public class TokenEndpoint {
 
 
     private void validGrantTypes(ClientDetails client, String grantType) {
-        Set<String> grantTypes = client.getAuthorizedGrantTypes();
-        if (!CollectionUtils.containsAny(grantTypes, grantTypes)) {
+        Set<AuthorizationGrantType> grantTypes = client.getAuthorizedGrantTypes();
+        //TODO 这里待处理
+        if (!CollectionUtils.containsAny(grantTypes, grantType)) {
             throw new RequestValidationException("unauthorized_client");
         }
     }

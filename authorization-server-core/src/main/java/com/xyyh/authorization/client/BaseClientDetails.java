@@ -1,6 +1,9 @@
 package com.xyyh.authorization.client;
 
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class BaseClientDetails implements ClientDetails {
 
@@ -10,7 +13,7 @@ public class BaseClientDetails implements ClientDetails {
     private String clientSecret;
     private Set<String> scope;
     private Set<String> registeredRedirectUris;
-    private Set<String> authorizedGrantTypes;
+    private Set<AuthorizationGrantType> authorizedGrantTypes;
 
     public BaseClientDetails() {
         super();
@@ -23,17 +26,17 @@ public class BaseClientDetails implements ClientDetails {
     }
 
     public BaseClientDetails(
-            String clientId,
-            String clientSecret,
-            Set<String> scope,
-            Set<String> registeredRedirectUris,
-            Set<String> authorizedGrantTypes) {
+        String clientId,
+        String clientSecret,
+        Set<String> scope,
+        Set<String> registeredRedirectUris,
+        Set<String> authorizedGrantTypes) {
         super();
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.scope = scope;
         this.registeredRedirectUris = registeredRedirectUris;
-        this.authorizedGrantTypes = authorizedGrantTypes;
+        this.authorizedGrantTypes = authorizedGrantTypes.stream().map(AuthorizationGrantType::new).collect(Collectors.toSet());
     }
 
     @Override
@@ -72,7 +75,7 @@ public class BaseClientDetails implements ClientDetails {
         this.scope = scope;
     }
 
-    public void setAuthorizedGrantTypes(Set<String> authorizedGrantTypes) {
+    public void setAuthorizedGrantTypes(Set<AuthorizationGrantType> authorizedGrantTypes) {
         this.authorizedGrantTypes = authorizedGrantTypes;
     }
 
@@ -116,12 +119,12 @@ public class BaseClientDetails implements ClientDetails {
     @Override
     public String toString() {
         return "BaseClientDetails [clientId=" + clientId + ", clientSecret=" + clientSecret + ", scope=" + scope
-                + ", registeredRedirectUris=" + registeredRedirectUris + ", authorizedGrantTypes="
-                + authorizedGrantTypes + "]";
+            + ", registeredRedirectUris=" + registeredRedirectUris + ", authorizedGrantTypes="
+            + authorizedGrantTypes + "]";
     }
 
     @Override
-    public Set<String> getAuthorizedGrantTypes() {
+    public Set<AuthorizationGrantType> getAuthorizedGrantTypes() {
         return this.authorizedGrantTypes;
     }
 

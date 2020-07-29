@@ -11,5 +11,5 @@ public interface OAuth2RedirectUriValidator {
      * @param requestUri
      * @param registeredUris
      */
-    public void validate(String requestUri, Set<String> registeredUris);
+    public boolean validate(String requestUri, Set<String> registeredUris);
 }
