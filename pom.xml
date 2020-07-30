@@ -1,6 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.xyyh.authorization</groupId>
   <artifactId>authorization</artifactId>
@@ -57,7 +55,7 @@
   <modules>
     <module>authorization-server-core</module>
     <module>authorization-server-configuration</module>
-    <module>samples/resource-server</module>
-    <module>samples/authorization-server</module>
+    <!--<module>samples/resource-server</module>-->
+    <!--<module>samples/authorization-server</module>-->
   </modules>
 </project>
