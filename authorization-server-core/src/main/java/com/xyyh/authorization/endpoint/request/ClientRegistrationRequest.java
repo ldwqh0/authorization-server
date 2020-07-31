@@ -1,4 +1,4 @@
-package com.xyyh.authorization.web.request;
+package com.xyyh.authorization.endpoint.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

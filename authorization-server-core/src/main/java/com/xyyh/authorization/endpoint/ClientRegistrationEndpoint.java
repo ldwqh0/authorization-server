@@ -1,6 +1,6 @@
-package com.xyyh.authorization.web;
+package com.xyyh.authorization.endpoint;
 
-import com.xyyh.authorization.web.request.ClientRegistrationRequest;
+import com.xyyh.authorization.endpoint.request.ClientRegistrationRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

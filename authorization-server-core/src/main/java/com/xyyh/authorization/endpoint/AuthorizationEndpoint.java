@@ -1,4 +1,4 @@
-package com.xyyh.authorization.web;
+package com.xyyh.authorization.endpoint;
 
 import com.google.common.collect.Maps;
 import com.xyyh.authorization.client.ClientDetails;
@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
@@ -75,7 +76,8 @@ public class AuthorizationEndpoint {
         HttpServletRequest request,
         Map<String, Object> model,
         @RequestParam MultiValueMap<String, String> params,
-        SessionStatus sessionStatus) {
+        SessionStatus sessionStatus,
+        @AuthenticationPrincipal Authentication user) {
         OpenidAuthorizationRequest authorizationRequest = createRequest(request.getRequestURL().toString(), params);
         try {
             // 加载client信息
@@ -95,9 +97,12 @@ public class AuthorizationEndpoint {
                 throw new OpenidRequestValidationException(authorizationRequest, "invalid_redirect_uri");
             }
 
+            ApprovalResult preResult = userApprovalHandler.preCheck(authorizationRequest, user);
+
             // 进行请求预检
-            if (preCheck(authorizationRequest, client)) {
-                return null;
+            if (preResult.isApprovaled()) {
+                sessionStatus.setComplete();
+                return new ModelAndView(getRedirectView(authorizationRequest, preResult, user));
             } else {
                 model.put(OAUTH2_AUTHORIZATION_REQUEST, authorizationRequest);
                 // 如果预检没有通过，跳转到授权页面
@@ -131,19 +136,21 @@ public class AuthorizationEndpoint {
         Map<String, ?> model,
         SessionStatus sessionStatus,
         Authentication userAuthentication) {
-        OpenidAuthorizationRequest authorizationRequest = (OpenidAuthorizationRequest) model
-            .get(OAUTH2_AUTHORIZATION_REQUEST);
-
+        OpenidAuthorizationRequest authorizationRequest = (OpenidAuthorizationRequest) model.get(OAUTH2_AUTHORIZATION_REQUEST);
+        // 当提交用户授权信息之后，将session标记为完成
+        sessionStatus.setComplete();
         // 获取用户授权结果
-        ApprovalResult approvalResult = userApprovalHandler.approval(authorizationRequest, approvalParameters);
-
+        ApprovalResult approvalResult = userApprovalHandler.approval(authorizationRequest, userAuthentication, approvalParameters);
         // 如果授权不通过，直接返回
         if (!approvalResult.isApprovaled()) {
             throw new OpenidRequestValidationException(authorizationRequest, "access_denied");
+        } else {
+            return getRedirectView(authorizationRequest, approvalResult, userAuthentication);
         }
-        // 获取请求流程
-        OpenidAuthorizationFlow flow = authorizationRequest.getFlow();
+    }
 
+    private View getRedirectView(OpenidAuthorizationRequest authorizationRequest, ApprovalResult approvalResult, Authentication userAuthentication) {
+        OpenidAuthorizationFlow flow = authorizationRequest.getFlow();
         if (OpenidAuthorizationFlow.CODE.equals(flow)) {
             return getCodeFlowResponse(authorizationRequest, approvalResult, userAuthentication);
         } else if (OpenidAuthorizationFlow.IMPLICIT.equals(flow)) {
@@ -206,18 +213,6 @@ public class AuthorizationEndpoint {
                                Authentication userAuthentication) {
 
         return null;
-    }
-
-    /**
-     * 进行请求预检
-     *
-     * @param authorizationRequest
-     * @param client
-     * @return
-     */
-    private boolean preCheck(OpenidAuthorizationRequest authorizationRequest, ClientDetails client) {
-        // TODO Auto-generated method stub
-        return false;
     }
 
     /**

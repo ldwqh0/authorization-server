@@ -1,9 +1,5 @@
 package com.xyyh.authorization.configuration;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
@@ -11,26 +7,22 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.client.InMemoryClientDetailsService;
-import com.xyyh.authorization.core.OAuth2AccessTokenService;
-import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
-import com.xyyh.authorization.core.OAuth2RedirectUriValidator;
-import com.xyyh.authorization.core.OAuth2RequestScopeValidator;
-import com.xyyh.authorization.core.UserApprovalHandler;
-import com.xyyh.authorization.provider.DefaultOAuth2RedirectUriValidator;
-import com.xyyh.authorization.provider.DefaultOAuth2RequestScopeValidator;
-import com.xyyh.authorization.provider.DefaultUserApprovalHandler;
-import com.xyyh.authorization.provider.InMemoryAuthorizationCodeService;
-import com.xyyh.authorization.provider.InMemoryOAuth2AccessTokenService;
-import com.xyyh.authorization.web.AuthorizationEndpoint;
-import com.xyyh.authorization.web.JWKSetEndpoint;
-import com.xyyh.authorization.web.TokenEndpoint;
-import com.xyyh.authorization.web.TokenIntrospectionEndpoint;
+import com.xyyh.authorization.core.*;
+import com.xyyh.authorization.endpoint.AuthorizationEndpoint;
+import com.xyyh.authorization.endpoint.JWKSetEndpoint;
+import com.xyyh.authorization.endpoint.TokenEndpoint;
+import com.xyyh.authorization.endpoint.TokenIntrospectionEndpoint;
+import com.xyyh.authorization.provider.*;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AuthorizationServerConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean({ ClientDetailsService.class })
+    @ConditionalOnMissingBean({ClientDetailsService.class})
     public ClientDetailsService clientDetailsService() {
         return new InMemoryClientDetailsService();
     }
@@ -102,7 +94,12 @@ public class AuthorizationServerConfiguration {
     @Bean
     @ConditionalOnMissingBean(UserApprovalHandler.class)
     public UserApprovalHandler userApprovalHandler() {
-        return new DefaultUserApprovalHandler();
+        return new ApprovalStoreUserApprovalHandler();
     }
 
+    @ConditionalOnBean(ApprovalStoreUserApprovalHandler.class)
+    @ConditionalOnMissingBean(ApprovalStoreService.class)
+    public ApprovalStoreService storeService() {
+        return new InMemoryApprovalStoreService();
+    }
 }

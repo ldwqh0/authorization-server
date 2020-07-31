@@ -87,7 +87,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public Set<String> getScopes() {
-        return approvalResult.getScope();
+        return approvalResult.getScopes();
     }
 
     @Override

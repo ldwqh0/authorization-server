@@ -1,4 +1,4 @@
-package com.xyyh.authorization.web;
+package com.xyyh.authorization.endpoint;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

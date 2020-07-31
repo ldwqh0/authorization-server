@@ -1,4 +1,4 @@
-package com.xyyh.authorization.web;
+package com.xyyh.authorization.endpoint;
 
 import java.util.Map;
 

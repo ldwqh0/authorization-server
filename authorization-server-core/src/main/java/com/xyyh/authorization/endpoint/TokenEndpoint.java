@@ -1,4 +1,4 @@
-package com.xyyh.authorization.web;
+package com.xyyh.authorization.endpoint;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;

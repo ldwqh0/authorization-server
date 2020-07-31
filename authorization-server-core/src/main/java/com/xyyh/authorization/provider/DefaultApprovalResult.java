@@ -15,7 +15,7 @@ public class DefaultApprovalResult implements ApprovalResult {
 
     private String redirectUri;
 
-    private Set<String> scope = Collections.emptySet();
+    private Set<String> scopes = Collections.emptySet();
 
     @Override
     public boolean isApprovaled() {
@@ -27,12 +27,12 @@ public class DefaultApprovalResult implements ApprovalResult {
     }
 
     @Override
-    public Set<String> getScope() {
-        return this.scope;
+    public Set<String> getScopes() {
+        return this.scopes;
     }
 
-    public void setScope(Set<String> scope) {
-        this.scope = scope;
+    public void setScope(Set<String> scopes) {
+        this.scopes = scopes;
     }
 
     @Override
