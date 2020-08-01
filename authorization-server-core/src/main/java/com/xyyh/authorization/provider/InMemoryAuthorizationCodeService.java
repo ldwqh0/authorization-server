@@ -1,42 +1,53 @@
 package com.xyyh.authorization.provider;
 
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.xyyh.authorization.core.OAuth2Authentication;
+import com.xyyh.authorization.core.OAuth2AuthorizationCode;
 import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
 
-public class InMemoryAuthorizationCodeService implements OAuth2AuthorizationCodeService {
-    private static final String RandomChars = "qwertyuiopasdfghjklzxcvbnm1234567890QWERTYUIOPASDFGHJKLZXCVBNM";
+import java.time.Instant;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
-    // TODO 要处理过期时间
-    private Map<String, OAuth2Authentication> store = new ConcurrentHashMap<>();
+public class InMemoryAuthorizationCodeService implements OAuth2AuthorizationCodeService {
+
+
+    private Map<String, TokenPair> store = new ConcurrentHashMap<>();
 
     @Override
-    public String create(OAuth2Authentication auth) {
-        String code = getRandomString(8);
-        store.put(code, auth);
+    public OAuth2AuthorizationCode save(OAuth2AuthorizationCode code, OAuth2Authentication authentication) {
+        String codeKey = code.getValue();
+        store.put(codeKey, new TokenPair(code, authentication));
         return code;
     }
 
-    @Override
-    public void delete(String code) {
-        this.store.remove(code);
-    }
 
     @Override
-    public OAuth2Authentication get(String code) {
-        return store.get(code);
-    }
-
-    private String getRandomString(int length) {
-        Random random = new Random();
-        int max = RandomChars.length();
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            builder.append(RandomChars.charAt(random.nextInt(max)));
+    public OAuth2Authentication consume(String code) {
+        TokenPair pair = store.remove(code);
+        if (Objects.isNull(pair)) {
+            // TODO 抛出异常还是返回空呢？
+            return null;
+        } else {
+            OAuth2AuthorizationCode result = pair.code;
+            Instant now = Instant.now();
+            if (now.isBefore(result.getExpiresAt())) {
+                return pair.authentication;
+            } else {
+                return null;
+            }
         }
-        return builder.toString();
     }
+
+
+    private static class TokenPair {
+        private final OAuth2AuthorizationCode code;
+        private final OAuth2Authentication authentication;
+
+        public TokenPair(OAuth2AuthorizationCode code, OAuth2Authentication authentication) {
+            this.code = code;
+            this.authentication = authentication;
+        }
+    }
+
 }

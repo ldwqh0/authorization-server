@@ -3,25 +3,19 @@ package com.xyyh.authorization.core;
 public interface OAuth2AuthorizationCodeService {
 
     /**
-     * 根据信息创建授权码
+     * 保存一个code和一个授权的关系
      *
-     * @param authorization 验证后的授权信息
+     * @param code
      * @return
      */
-    String create(OAuth2Authentication authorization);
+    public OAuth2AuthorizationCode save(OAuth2AuthorizationCode code, OAuth2Authentication authentication);
+
 
     /**
-     * 删除指定授权码
+     * 消费指定授权码
      *
      * @param code
      */
-    void delete(String code);
-
-    /**
-     * 获取指定授权码
-     *
-     * @param code
-     */
-    OAuth2Authentication get(String code);
+    public OAuth2Authentication consume(String code);
 
 }

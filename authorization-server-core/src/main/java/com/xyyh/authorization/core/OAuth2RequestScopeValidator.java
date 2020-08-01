@@ -1,7 +1,7 @@
 package com.xyyh.authorization.core;
 
 import com.xyyh.authorization.client.ClientDetails;
-import com.xyyh.authorization.core.endpoint.OpenidAuthorizationRequest;
+import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import com.xyyh.authorization.exception.InvalidScopeException;
 
 import java.util.Set;

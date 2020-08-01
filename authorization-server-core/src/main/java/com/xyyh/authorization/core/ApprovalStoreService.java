@@ -1,5 +1,7 @@
 package com.xyyh.authorization.core;
 
+import java.util.Optional;
+
 public interface ApprovalStoreService {
     /**
      * 保存一条授权信息
@@ -17,7 +19,7 @@ public interface ApprovalStoreService {
      * @param clientId
      * @return
      */
-    public ApprovalResult get(String userid, String clientId);
+    public Optional<ApprovalResult> get(String userid, String clientId);
 
     /**
      * 删除授权信息

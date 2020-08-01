@@ -16,7 +16,7 @@ public class Confc {
         cds.addClient(new BaseClientDetails(
             "app",
             "123456",
-            Sets.newHashSet("openid"),
+            Sets.newHashSet("openid", "email"),
             Sets.newHashSet("https://www.baidu.com"),
             Sets.newHashSet("authorization_code", "implicit")));
         cds.addClient(new BaseClientDetails("resource", "123456"));

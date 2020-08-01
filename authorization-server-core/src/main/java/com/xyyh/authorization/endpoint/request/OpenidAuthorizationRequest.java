@@ -1,4 +1,4 @@
-package com.xyyh.authorization.core.endpoint;
+package com.xyyh.authorization.endpoint.request;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;

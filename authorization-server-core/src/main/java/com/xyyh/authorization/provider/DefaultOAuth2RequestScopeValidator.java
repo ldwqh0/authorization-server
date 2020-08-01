@@ -5,7 +5,7 @@ import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.core.OAuth2RequestScopeValidator;
-import com.xyyh.authorization.core.endpoint.OpenidAuthorizationRequest;
+import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import com.xyyh.authorization.exception.InvalidScopeException;
 
 public class DefaultOAuth2RequestScopeValidator implements OAuth2RequestScopeValidator {

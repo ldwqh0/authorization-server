@@ -1,6 +1,6 @@
 package com.xyyh.authorization.exception;
 
-import com.xyyh.authorization.core.endpoint.OpenidAuthorizationRequest;
+import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 
 public class OpenidRequestValidationException extends RuntimeException {
 

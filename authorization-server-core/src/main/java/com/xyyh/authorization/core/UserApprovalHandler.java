@@ -1,10 +1,13 @@
 package com.xyyh.authorization.core;
 
-import com.xyyh.authorization.core.endpoint.OpenidAuthorizationRequest;
+import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import org.springframework.security.core.Authentication;
 
 import java.util.Map;
 
+/**
+ * 用户授权处理器，用户处理用户的手动授权信息
+ */
 public interface UserApprovalHandler {
 
     /**
@@ -26,7 +29,7 @@ public interface UserApprovalHandler {
     public ApprovalResult approval(OpenidAuthorizationRequest request, Authentication user, Map<String, String> approvalParameters);
 
     /**
-     * 更新结果
+     * 更新授权结果
      *
      * @param result
      * @param user

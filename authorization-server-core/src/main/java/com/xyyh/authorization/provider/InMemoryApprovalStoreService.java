@@ -5,6 +5,7 @@ import com.xyyh.authorization.core.ApprovalStoreService;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryApprovalStoreService implements ApprovalStoreService {
@@ -16,8 +17,8 @@ public class InMemoryApprovalStoreService implements ApprovalStoreService {
     }
 
     @Override
-    public ApprovalResult get(String userid, String clientId) {
-        return this.storage.get(new UnionKey(userid, clientId));
+    public Optional<ApprovalResult> get(String userid, String clientId) {
+        return Optional.ofNullable(this.storage.get(new UnionKey(userid, clientId)));
     }
 
     @Override

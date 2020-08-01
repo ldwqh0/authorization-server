@@ -2,7 +2,7 @@ package com.xyyh.authorization.provider;
 
 import com.xyyh.authorization.core.ApprovalResult;
 import com.xyyh.authorization.core.UserApprovalHandler;
-import com.xyyh.authorization.core.endpoint.OpenidAuthorizationRequest;
+import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;

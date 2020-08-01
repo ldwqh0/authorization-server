@@ -36,6 +36,7 @@ public class TestStringSplit {
         return builder.toString();
     }
 
+    @Test
     public String random2() {
         return accessTokenGenerator.generateKey();
     }
@@ -51,7 +52,7 @@ public class TestStringSplit {
     @Test
     public void Random6() {
         for (int i = 0; i < 100; i++) {
-            System.out.println(Base64.getUrlEncoder().encodeToString(KeyGenerators.secureRandom(30).generateKey()));
+            System.out.println(Base64.getUrlEncoder().encodeToString(KeyGenerators.secureRandom(12).generateKey()));
         }
     }
 

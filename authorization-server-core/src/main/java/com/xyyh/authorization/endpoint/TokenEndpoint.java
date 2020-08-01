@@ -7,7 +7,7 @@ import com.xyyh.authorization.core.OAuth2AccessTokenService;
 import com.xyyh.authorization.core.OAuth2Authentication;
 import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
 import com.xyyh.authorization.core.OAuth2RequestScopeValidator;
-import com.xyyh.authorization.exception.RequestValidationException;
+import com.xyyh.authorization.exception.TokenRequestValidationException;
 import com.xyyh.authorization.provider.DefaultApprovalResult;
 import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
 import com.xyyh.authorization.utils.OAuth2AccessTokenUtils;
@@ -20,6 +20,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.*;
@@ -48,6 +49,9 @@ public class TokenEndpoint {
 
     @Autowired
     private OAuth2RequestScopeValidator oAuth2RequestValidator;
+
+    @Autowired(required = false)
+    private UserDetailsService userDetailsService;
 
     // @GetMapping
     // 暂不支持get请求
@@ -95,8 +99,7 @@ public class TokenEndpoint {
             // 返回token
             return ResponseEntity.ok(OAuth2AccessTokenUtils.converterToken2Map(accessToken));
         } else {
-            // TODO 用户名密码验证失败待处理
-            return null;
+            throw new TokenRequestValidationException("d");
         }
     }
 
@@ -115,37 +118,36 @@ public class TokenEndpoint {
         @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
         @RequestParam("code") String code,
         @RequestParam("redirect_uri") String redirectUri) {
-
+        // 使用http basic来验证client，通过AuthorizationServerSecurityConfiguration实现
         // 验证grant type
         validGrantTypes(client, "authorization_code");
-
         // 验证code
-        OAuth2Authentication authentication = authorizationCodeService.get(code);
+        OAuth2Authentication authentication = authorizationCodeService.consume(code);
+        // 首先验证code是否存在
         if (Objects.isNull(authentication)) {
-            throw new RequestValidationException("invalid_grant");
+            throw new TokenRequestValidationException("invalid_grant");
         }
-        // 验证client是否匹配指定的client
+        // 验证client是否匹配code所指定的client
         if (!StringUtils.equals(client.getClientId(), authentication.getClientId())) {
-            throw new RequestValidationException("invalid_grant");
+            throw new TokenRequestValidationException("invalid_grant");
         }
+
         // 颁发token时，验证RedirectUri是否匹配
         // 颁发token时，redirect uri 必须和请求的redirect uri 一致
         if (!StringUtils.equals(redirectUri, authentication.getRedirectUri())) {
-            throw new RequestValidationException("invalid_grant");
+            throw new TokenRequestValidationException("invalid_grant");
         }
 
         // 没有找到指定的授权码信息时报错
         OAuth2AccessToken accessToken = accessTokenService.create(authentication);
-        authorizationCodeService.delete(code);
         return ResponseEntity.ok(OAuth2AccessTokenUtils.converterToken2Map(accessToken));
     }
 
 
     private void validGrantTypes(ClientDetails client, String grantType) {
         Set<AuthorizationGrantType> grantTypes = client.getAuthorizedGrantTypes();
-        //TODO 这里待处理
         if (!CollectionUtils.containsAny(grantTypes, grantType)) {
-            throw new RequestValidationException("unauthorized_client");
+            throw new TokenRequestValidationException("unauthorized_client");
         }
     }
 
@@ -161,6 +163,8 @@ public class TokenEndpoint {
         @RequestParam("refresh_token") String refreshToken,
         @RequestParam("scope") String scope) {
         return null;
+        // 使用refreshToken时,需要重新加载用户的信息
+        //        userDetailsService.loadUserByUsername();
     }
 
     /**
@@ -181,7 +185,7 @@ public class TokenEndpoint {
      * @param ex
      * @return
      */
-    @ExceptionHandler({RequestValidationException.class})
+    @ExceptionHandler({TokenRequestValidationException.class})
     public ResponseEntity<Map<String, ?>> handleException(Exception ex) {
         Map<String, Object> response = Maps.newHashMap();
         response.put("error", ex.getMessage());

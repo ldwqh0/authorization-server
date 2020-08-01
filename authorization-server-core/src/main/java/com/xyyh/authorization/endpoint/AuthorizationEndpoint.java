@@ -4,13 +4,14 @@ import com.google.common.collect.Maps;
 import com.xyyh.authorization.client.ClientDetails;
 import com.xyyh.authorization.client.ClientDetailsService;
 import com.xyyh.authorization.core.*;
-import com.xyyh.authorization.core.endpoint.OpenidAuthorizationFlow;
-import com.xyyh.authorization.core.endpoint.OpenidAuthorizationRequest;
+import com.xyyh.authorization.endpoint.request.OpenidAuthorizationFlow;
+import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import com.xyyh.authorization.exception.InvalidScopeException;
 import com.xyyh.authorization.exception.NoSuchClientException;
 import com.xyyh.authorization.exception.OpenidRequestValidationException;
 import com.xyyh.authorization.exception.UnsupportedResponseTypeException;
 import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
+import com.xyyh.authorization.provider.DefaultOAuth2AuthorizationCode;
 import com.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
@@ -30,12 +33,10 @@ import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 
-import static com.xyyh.authorization.core.endpoint.OpenidAuthorizationRequest.*;
+import static com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest.*;
 
 @SessionAttributes({"authorizationRequest"})
 @RequestMapping("/oauth2/authorize")
@@ -44,6 +45,9 @@ public class AuthorizationEndpoint {
     private static final String OAUTH2_AUTHORIZATION_REQUEST = "authorizationRequest";
     private static final String USER_OAUTH_APPROVAL = "user_oauth_approval";
 
+    StringKeyGenerator authorizationCodeGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
+
+    private int periodOfValidity = 3 * 60;
 
     @Autowired
     private ClientDetailsService clientDetailsService;
@@ -195,9 +199,14 @@ public class AuthorizationEndpoint {
         if (StringUtils.isNotEmpty(state)) {
             query.put("state", state);
         }
+        // 创建授权码
+        String codeValue = authorizationCodeGenerator.generateKey();
+        Instant issueAt = Instant.now();
+        // code有效期默认三分钟
+        Instant expireAt = issueAt.plusSeconds(periodOfValidity);
         // 创建并保存授权码
-        String code = authorizationCodeService.create(new DefaultOAuth2AuthenticationToken(result, userAuthentication));
-        query.put("code", code);
+        OAuth2AuthorizationCode code = authorizationCodeService.save(new DefaultOAuth2AuthorizationCode(codeValue, issueAt, expireAt), new DefaultOAuth2AuthenticationToken(result, userAuthentication));
+        query.put("code", code.getValue());
         return buildRedirectView(request.getRedirectUri(), query, null);
     }
 
@@ -286,6 +295,13 @@ public class AuthorizationEndpoint {
         return true;
     }
 
+    /**
+     * 验证指定的client的authorizationGrantTypes是否支持特定的responseType
+     *
+     * @param responseType            待验证的responseType
+     * @param authorizationGrantTypes client的authorizationGrantTypes
+     * @return
+     */
     private boolean validResponseType(String responseType, Set<AuthorizationGrantType> authorizationGrantTypes) {
         // 如果response type=code,要求client必须支持AUTHORIZATION_CODE
         if (RESPONSE_TYPE_CODE.equals(responseType)) {
