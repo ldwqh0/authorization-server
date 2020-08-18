@@ -4,6 +4,7 @@ import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 
 public class OpenidRequestValidationException extends RuntimeException {
 
+    private static final long serialVersionUID = -5266787893793188272L;
     /**
      * 发生错误的请求
      */

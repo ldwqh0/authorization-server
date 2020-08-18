@@ -1,6 +1,8 @@
 package com.xyyh.authorization.exception;
 
 public class UnsupportedResponseTypeException extends RuntimeException {
+    private static final long serialVersionUID = -496818695443849954L;
+
     public UnsupportedResponseTypeException() {
         super();
     }

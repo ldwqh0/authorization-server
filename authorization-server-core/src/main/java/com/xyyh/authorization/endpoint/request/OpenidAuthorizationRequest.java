@@ -94,7 +94,6 @@ public class OpenidAuthorizationRequest implements Serializable {
 
     public static class Builder {
         private OpenidAuthorizationRequest value = new OpenidAuthorizationRequest();
-        private static final String[] RESPONSE_TYPES = new String[]{RESPONSE_TYPE_CODE, RESPONSE_TYPE_ID_TOKEN, RESPONSE_TYPE_TOKEN};
 
         private static final String SPACE = " ";
 
@@ -105,8 +104,6 @@ public class OpenidAuthorizationRequest implements Serializable {
             value.redirectUri = redirectUri;
             return this;
         }
-
-        ;
 
         public Builder scopes(Collection<String> scopes) {
             for (String scope : scopes) {
@@ -139,8 +136,6 @@ public class OpenidAuthorizationRequest implements Serializable {
             value.authorizationRequestUri = authorizationRequestUri;
             return this;
         }
-
-        ;
 
         public Builder attributes(Map<String, Object> attributes) {
             getAttributes().putAll(attributes);

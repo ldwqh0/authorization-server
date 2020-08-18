@@ -4,10 +4,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 
+import com.xyyh.authorization.core.OAuth2AccessTokenService;
 import com.xyyh.authorization.core.OAuth2Authentication;
 
-public class InMemoryOAuth2AccessTokenService extends AbstractOAuth2AccessTokenService {
+public class InMemoryOAuth2AccessTokenService implements OAuth2AccessTokenService {
 
     private final Map<String, OAuth2Authentication> authenticationReposiotry = new ConcurrentHashMap<>();
 
@@ -20,10 +22,11 @@ public class InMemoryOAuth2AccessTokenService extends AbstractOAuth2AccessTokenS
     }
 
     @Override
-    protected void save(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
+    public OAuth2AccessToken save(OAuth2AccessToken accessToken, OAuth2Authentication authentication) {
         String tokenKey = accessToken.getTokenValue();
         this.authenticationReposiotry.put(tokenKey, authentication);
         this.tokenRepository.put(tokenKey, accessToken);
+        return accessToken;
     }
 
     @Override
@@ -34,6 +37,12 @@ public class InMemoryOAuth2AccessTokenService extends AbstractOAuth2AccessTokenS
     @Override
     public OAuth2AccessToken getAccessToken(String accessToken) {
         return this.tokenRepository.get(accessToken);
+    }
+
+    @Override
+    public OAuth2RefreshToken createRefreshToken(OAuth2AccessToken accessToken) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }

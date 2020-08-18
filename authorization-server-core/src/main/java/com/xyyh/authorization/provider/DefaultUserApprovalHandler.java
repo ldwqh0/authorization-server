@@ -1,9 +1,9 @@
 package com.xyyh.authorization.provider;
 
+import com.xyyh.authorization.collect.Collections;
 import com.xyyh.authorization.core.ApprovalResult;
 import com.xyyh.authorization.core.UserApprovalHandler;
 import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 
@@ -40,7 +40,7 @@ public class DefaultUserApprovalHandler implements UserApprovalHandler {
         DefaultApprovalResult result = new DefaultApprovalResult();
         result.setClientId(request.getClientId());
         result.setRedirectUri(request.getRedirectUri());
-        if (CollectionUtils.isNotEmpty(approvedScopes)) {
+        if (Collections.isNotEmpty(approvedScopes)) {
             result.setApprovaled(true);
             result.setScope(approvedScopes);
         }

@@ -14,11 +14,11 @@ public class Confc {
     public ClientDetailsService clientDetailsService() {
         InMemoryClientDetailsService cds = new InMemoryClientDetailsService();
         cds.addClient(new BaseClientDetails(
-            "app",
-            "123456",
-            Sets.newHashSet("openid", "email"),
-            Sets.newHashSet("https://www.baidu.com"),
-            Sets.newHashSet("authorization_code", "implicit")));
+                "app",
+                "123456",
+                Sets.newHashSet("openid", "email"),
+                Sets.newHashSet("https://www.baidu.com"),
+                Sets.newHashSet("authorization_code", "implicit", "password")));
         cds.addClient(new BaseClientDetails("resource", "123456"));
         return cds;
     }
