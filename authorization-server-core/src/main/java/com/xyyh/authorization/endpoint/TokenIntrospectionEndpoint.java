@@ -41,7 +41,7 @@ public class TokenIntrospectionEndpoint {
      * @param token
      * @return
      */
-    @PostMapping(consumes = { "application/json" }, produces = {})
+    @PostMapping(consumes = { "application/x-www-form-urlencoded" }, produces = {})
     @ResponseBody
     public Map<String, ?> introspection(
             @RequestParam("token") String token,

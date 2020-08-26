@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
+import static com.xyyh.authorization.utils.OAuth2IntrospectionClaimNames.*;
 
 public final class OAuth2AccessTokenUtils {
 
@@ -47,25 +48,25 @@ public final class OAuth2AccessTokenUtils {
         // 如果没有找到相关的token直接返回false
         // TODO 需要检擦token是否过期
         if (Objects.isNull(token)) {
-            response.put("active", Boolean.FALSE);
+            response.put(ACTIVE, Boolean.FALSE);
         } else {
-            response.put("active", Boolean.TRUE);
-            response.put("scope", StringUtils.join(token.getScopes(), SPACE));
-            response.put("client_id", authentication.getClientId());
-            response.put("username", authentication.getName());
+            response.put(ACTIVE, Boolean.TRUE);
+            response.put(SCOPE, StringUtils.join(token.getScopes(), SPACE));
+            response.put(CLIENT_ID, authentication.getClientId());
+            response.put(USERNAME, authentication.getName());
             // 目前只支持Bearer token
-            response.put("token_type", "Bearer");
+            response.put(TOKEN_TYPE, "Bearer");
 
             Instant expiresAt = token.getExpiresAt();
             if (expiresAt != null) {
-                response.put("exp", expiresAt.getEpochSecond());
+                response.put(EXPIRES_AT, expiresAt.getEpochSecond());
             }
             Instant issuedAt = token.getIssuedAt();
             if (issuedAt != null) {
-                response.put("iat", issuedAt.getEpochSecond());
+                response.put(ISSUED_AT, issuedAt.getEpochSecond());
             }
             // Not Before ,不能在什么时间之前
-            response.put("nbf", issuedAt.getEpochSecond());
+            response.put(NOT_BEFORE, issuedAt.getEpochSecond());
             // TODO 这里返回用户ID
             // response.put("sub", 0);
             // TODO Audience 接收方，ip地址？或者其它信息

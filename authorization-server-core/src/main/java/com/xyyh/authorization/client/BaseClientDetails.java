@@ -87,6 +87,11 @@ public class BaseClientDetails implements ClientDetails {
         this.authorizedGrantTypes = authorizedGrantTypes;
     }
 
+    public void setAuthorizedGrantTypes(Collection<String> authorizedGrantTypes) {
+        this.authorizedGrantTypes = authorizedGrantTypes.stream().map(AuthorizationGrantType::new)
+                .collect(Collectors.toSet());
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

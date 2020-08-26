@@ -98,7 +98,6 @@ public class AuthorizationEndpoint {
             if (!redirectUriValidator.validate(redirectUri, client.getRegisteredRedirectUris())) {
                 throw new OpenidRequestValidationException(authorizationRequest, "invalid_redirect_uri");
             }
-
             ApprovalResult preResult = userApprovalHandler.preCheck(authorizationRequest, user);
 
             // 进行请求预检

@@ -8,3 +8,4 @@ spring:
           introspection-uri: http://localhost:8080/oauth2/token/introspection
           client-id: resource
           client-secret: 123456
+        
