@@ -43,7 +43,7 @@ public class AuthorizationEndpoint {
     private static final String OAUTH2_AUTHORIZATION_REQUEST = "authorizationRequest";
     private static final String USER_OAUTH_APPROVAL = "user_oauth_approval";
 
-    StringKeyGenerator authorizationCodeGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
+    private StringKeyGenerator authorizationCodeGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
 
     private int periodOfValidity = 3 * 60;
 
@@ -336,6 +336,8 @@ public class AuthorizationEndpoint {
         if (StringUtils.isNotEmpty(state)) {
             error.put("state", state);
         }
-        return buildRedirectView("https://www.baidu.com", error, null);
+        OpenidAuthorizationRequest request = ex.getRequest();
+        String redirect = Objects.isNull(request) ? null : request.getRedirectUri();
+        return buildRedirectView(redirect, error, null);
     }
 }

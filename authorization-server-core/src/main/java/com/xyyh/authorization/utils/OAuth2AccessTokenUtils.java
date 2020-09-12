@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
+
 import static com.xyyh.authorization.utils.OAuth2IntrospectionClaimNames.*;
 
 public final class OAuth2AccessTokenUtils {
@@ -40,10 +41,10 @@ public final class OAuth2AccessTokenUtils {
      * @param authentication
      * @return
      * @see <a href=
-     *      "https://tools.ietf.org/html/rfc7662#section-2.2">https://tools.ietf.org/html/rfc7662#section-2.2</a>
+     * "https://tools.ietf.org/html/rfc7662#section-2.2">https://tools.ietf.org/html/rfc7662#section-2.2</a>
      */
     public static Map<String, ?> converterToken2IntrospectionResponse(OAuth2AccessToken token,
-            OAuth2Authentication authentication) {
+                                                                      OAuth2Authentication authentication) {
         Map<String, Object> response = Maps.newLinkedHashMap();
         // 如果没有找到相关的token直接返回false
         // TODO 需要检擦token是否过期
@@ -64,9 +65,9 @@ public final class OAuth2AccessTokenUtils {
             Instant issuedAt = token.getIssuedAt();
             if (issuedAt != null) {
                 response.put(ISSUED_AT, issuedAt.getEpochSecond());
+                // Not Before ,不能在什么时间之前
+                response.put(NOT_BEFORE, issuedAt.getEpochSecond());
             }
-            // Not Before ,不能在什么时间之前
-            response.put(NOT_BEFORE, issuedAt.getEpochSecond());
             // TODO 这里返回用户ID
             // response.put("sub", 0);
             // TODO Audience 接收方，ip地址？或者其它信息

@@ -147,6 +147,7 @@ public class TokenEndpoint {
         // 没有找到指定的授权码信息时报错
         OAuth2AccessToken accessToken = accessTokenService
                 .save(OAuth2AccessTokenGenerator.generateAccesstoken(authentication), authentication);
+        // TODO 需要处理openid
         return OAuth2AccessTokenUtils.converterToken2Map(accessToken);
     }
 

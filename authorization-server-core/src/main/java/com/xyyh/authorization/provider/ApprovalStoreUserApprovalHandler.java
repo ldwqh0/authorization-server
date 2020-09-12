@@ -7,6 +7,7 @@ import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import org.springframework.security.core.Authentication;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -34,8 +35,9 @@ public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler
          */
         Set<String> requestScopes = request.getScopes();
         return this.approvalStoreService.get(user.getName(), request.getClientId())
-            .filter(preResult -> preResult.getScopes().containsAll(requestScopes))
-            .orElseGet(DefaultApprovalResult::new);
+                .filter(preResult -> preResult.getScopes().containsAll(requestScopes))
+                .filter(preResult -> Objects.equals(preResult.getRedirectUri(), request.getRedirectUri()))
+                .orElseGet(DefaultApprovalResult::new);
     }
 
     /**
@@ -47,7 +49,8 @@ public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler
      * @return
      */
     @Override
-    public ApprovalResult approval(OpenidAuthorizationRequest request, Authentication user, Map<String, String> approvalParameters) {
+    public ApprovalResult approval(OpenidAuthorizationRequest request, Authentication user,
+            Map<String, String> approvalParameters) {
         ApprovalResult result = super.approval(request, user, approvalParameters);
         approvalStoreService.save(user.getName(), request.getClientId(), result);
         return result;

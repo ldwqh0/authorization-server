@@ -166,7 +166,7 @@ public class OpenidAuthorizationRequest implements Serializable {
         }
 
         public Builder authorizationUri(String authorizationUri) {
-            value.authorizationRequestUri = authorizationUri;
+            value.authorizationUri = authorizationUri;
             return this;
         }
 

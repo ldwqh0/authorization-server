@@ -50,7 +50,7 @@ public class TestStringSplit {
     }
 
     @Test
-    public void Random6() {
+    public void random6() {
         for (int i = 0; i < 100; i++) {
             System.out.println(Base64.getUrlEncoder().encodeToString(KeyGenerators.secureRandom(12).generateKey()));
         }
