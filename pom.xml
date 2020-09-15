@@ -11,7 +11,7 @@
     <spring-boot.version>2.2.9.RELEASE</spring-boot.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <modules>
     <module>authorization-server-core</module>
