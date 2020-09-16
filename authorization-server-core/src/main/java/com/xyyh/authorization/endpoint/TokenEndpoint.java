@@ -33,7 +33,7 @@ import java.util.Set;
  * oauth2获取token的核心协议
  *
  * @see <a href=
- *      "https://tools.ietf.org/html/rfc6749">https://tools.ietf.org/html/rfc6749</a>
+ * "https://tools.ietf.org/html/rfc6749">https://tools.ietf.org/html/rfc6749</a>
  */
 @RequestMapping("/oauth2/token")
 public class TokenEndpoint {
@@ -51,16 +51,20 @@ public class TokenEndpoint {
     @Autowired
     private OAuth2RequestScopeValidator oAuth2RequestValidator;
 
-    @Autowired(required = false)
     private UserDetailsService userDetailsService;
+
+    @Autowired(required = false)
+    public void setUserDetailsService(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
 
     // @GetMapping
     // 暂不支持get请求
     public Map<String, ?> getAccessToken(
-            Authentication principal,
-            @RequestParam("grant_type") String grantType,
-            @RequestParam("code") String code,
-            @RequestParam("redirect_uri") String redirectUri) {
+        Authentication principal,
+        @RequestParam("grant_type") String grantType,
+        @RequestParam("code") String code,
+        @RequestParam("redirect_uri") String redirectUri) {
         return null;
 //        return postAccessToken(principal, code, redirectUri);
     }
@@ -68,17 +72,17 @@ public class TokenEndpoint {
     /**
      * 密码模式的授权请求
      *
-     * @return
+     * @return accessToken信息
      * @see <a href=
-     *      "https://tools.ietf.org/html/rfc6749#section-4.3">https://tools.ietf.org/html/rfc6749#section-4.3</a>
+     * "https://tools.ietf.org/html/rfc6749#section-4.3">https://tools.ietf.org/html/rfc6749#section-4.3</a>
      */
-    @PostMapping(params = { "grant_type=password" })
+    @PostMapping(params = {"grant_type=password"})
     @ResponseBody
     public Map<String, ?> postAccessToken(
-            @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client, // client的信息
-            @RequestParam("username") String username,
-            @RequestParam("password") String password,
-            @RequestParam("scope") String scope) {
+        @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client, // client的信息
+        @RequestParam("username") String username,
+        @RequestParam("password") String password,
+        @RequestParam("scope") String scope) {
         // 验证grant type
         validGrantTypes(client, "password");
 
@@ -99,8 +103,8 @@ public class TokenEndpoint {
 
             // 生成并保存token
             OAuth2AccessToken accessToken = accessTokenService.save(
-                    OAuth2AccessTokenGenerator.generateAccesstoken(authentication),
-                    authentication);
+                OAuth2AccessTokenGenerator.generateAccessToken(authentication),
+                authentication);
             // 返回token
             return OAuth2AccessTokenUtils.converterToken2Map(accessToken);
         } else {
@@ -111,19 +115,19 @@ public class TokenEndpoint {
     /**
      * 授权码模式的授权请求
      *
-     * @param client
-     * @param code
-     * @param redirectUri
-     * @return
+     * @param client      连接信息
+     * @param code        授权码
+     * @param redirectUri 重定向uri
+     * @return accessToken信息
      * @see <a href=
-     *      "https://tools.ietf.org/html/rfc6749#section-4.1">https://tools.ietf.org/html/rfc6749#section-4.1</a>
+     * "https://tools.ietf.org/html/rfc6749#section-4.1">https://tools.ietf.org/html/rfc6749#section-4.1</a>
      */
-    @PostMapping(params = { "code", "grant_type=authorization_code" })
+    @PostMapping(params = {"code", "grant_type=authorization_code"})
     @ResponseBody
     public Map<String, ?> postAccessToken(
-            @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
-            @RequestParam("code") String code,
-            @RequestParam("redirect_uri") String redirectUri) {
+        @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
+        @RequestParam("code") String code,
+        @RequestParam("redirect_uri") String redirectUri) {
         // 使用http basic来验证client，通过AuthorizationServerSecurityConfiguration实现
         // 验证grant type
         validGrantTypes(client, "authorization_code");
@@ -146,7 +150,7 @@ public class TokenEndpoint {
 
         // 没有找到指定的授权码信息时报错
         OAuth2AccessToken accessToken = accessTokenService
-                .save(OAuth2AccessTokenGenerator.generateAccesstoken(authentication), authentication);
+            .save(OAuth2AccessTokenGenerator.generateAccessToken(authentication), authentication);
         // TODO 需要处理openid
         return OAuth2AccessTokenUtils.converterToken2Map(accessToken);
     }
@@ -161,15 +165,15 @@ public class TokenEndpoint {
     /**
      * 刷新token
      *
-     * @param refreshToken
-     * @param scope
-     * @return
+     * @param refreshToken refreshToken
+     * @param scope        scope
+     * @return accessToken信息
      */
-    @PostMapping(params = { "grant_type=refresh_token" })
+    @PostMapping(params = {"grant_type=refresh_token"})
     @ResponseBody
     public Map<String, ?> refreshToken(
-            @RequestParam("refresh_token") String refreshToken,
-            @RequestParam("scope") String scope) {
+        @RequestParam("refresh_token") String refreshToken,
+        @RequestParam("scope") String scope) {
         return null;
         // 使用refreshToken时,需要重新加载用户的信息
         // userDetailsService.loadUserByUsername();
@@ -178,7 +182,7 @@ public class TokenEndpoint {
     /**
      * 其它不支持的授权类型
      *
-     * @return
+     * @return 错误响应
      */
     @PostMapping
     public ResponseEntity<Map<String, ?>> otherwise() {
@@ -190,10 +194,10 @@ public class TokenEndpoint {
     /**
      * 处理异常请求
      *
-     * @param ex
-     * @return
+     * @param ex 异常信息
+     * @return 异常响应
      */
-    @ExceptionHandler({ TokenRequestValidationException.class })
+    @ExceptionHandler({TokenRequestValidationException.class})
     public ResponseEntity<Map<String, ?>> handleException(Exception ex) {
         Map<String, Object> response = Maps.newHashMap();
         response.put("error", ex.getMessage());
@@ -203,16 +207,17 @@ public class TokenEndpoint {
     /**
      * revoke a token
      *
-     * @param token 要移除的token的值
-     * @param
+     * @param token         要移除的token的值
+     * @param tokenTypeHint tokenTypeHint
+     * @param client        client信息
      * @see <a href=
-     *      "https://tools.ietf.org/html/rfc7009#section-2.1">https://tools.ietf.org/html/rfc7009#section-2.1</a>
+     * "https://tools.ietf.org/html/rfc7009#section-2.1">https://tools.ietf.org/html/rfc7009#section-2.1</a>
      */
     @PostMapping("revoke")
     public void revoke(
-            @RequestParam("token") String token,
-            @RequestParam("token_type_hint") String tokenTypeHint,
-            @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client) {
+        @RequestParam("token") String token,
+        @RequestParam("token_type_hint") String tokenTypeHint,
+        @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client) {
         // TODO 需要支持跨域
         // TODO 待实现
     }

@@ -16,7 +16,7 @@ public class OAuth2AccessTokenGenerator {
 
     private static StringKeyGenerator stringKeyGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
 
-    public static OAuth2AccessToken generateAccesstoken(OAuth2Authentication authenticationToken) {
+    public static OAuth2AccessToken generateAccessToken(OAuth2Authentication authenticationToken) {
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(1, ChronoUnit.HOURS);
         String tokenValue = stringKeyGenerator.generateKey();
