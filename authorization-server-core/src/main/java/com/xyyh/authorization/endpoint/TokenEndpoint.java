@@ -1,15 +1,11 @@
 package com.xyyh.authorization.endpoint;
 
 import com.xyyh.authorization.client.ClientDetails;
-import com.xyyh.authorization.collect.Collections;
+import com.xyyh.authorization.collect.CollectionUtils;
 import com.xyyh.authorization.collect.Maps;
 import com.xyyh.authorization.collect.Sets;
-import com.xyyh.authorization.core.OAuth2AccessTokenService;
-import com.xyyh.authorization.core.OAuth2Authentication;
-import com.xyyh.authorization.core.OAuth2AuthorizationCodeService;
-import com.xyyh.authorization.core.OAuth2RequestScopeValidator;
+import com.xyyh.authorization.core.*;
 import com.xyyh.authorization.exception.TokenRequestValidationException;
-import com.xyyh.authorization.provider.DefaultApprovalResult;
 import com.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
 import com.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -96,15 +92,10 @@ public class TokenEndpoint {
         // 如果用户授权失败
         if (user.isAuthenticated()) {
             // 构建授权结果
-            DefaultApprovalResult approvalResult = new DefaultApprovalResult();
-            approvalResult.setClientId(client.getClientId());
-            approvalResult.setScope(scopes);
-            OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(approvalResult, user);
-
+            ApprovalResult approvalResult = ApprovalResult.of(client.getClientId(), scopes);
+            OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(approvalResult, user, null);
             // 生成并保存token
-            OAuth2AccessToken accessToken = accessTokenService.save(
-                OAuth2AccessTokenGenerator.generateAccessToken(authentication),
-                authentication);
+            OAuth2AccessToken accessToken = accessTokenService.save(OAuth2AccessTokenGenerator.generateAccessToken(authentication), authentication);
             // 返回token
             return OAuth2AccessTokenUtils.converterToken2Map(accessToken);
         } else {
@@ -144,7 +135,7 @@ public class TokenEndpoint {
 
         // 颁发token时，验证RedirectUri是否匹配
         // 颁发token时，redirect uri 必须和请求的redirect uri 一致
-        if (!StringUtils.equals(redirectUri, authentication.getRedirectUri())) {
+        if (!StringUtils.equals(redirectUri, authentication.getRequest().getRedirectUri())) {
             throw new TokenRequestValidationException("invalid_grant");
         }
 
@@ -157,7 +148,7 @@ public class TokenEndpoint {
 
     private void validGrantTypes(ClientDetails client, String grantType) {
         Set<AuthorizationGrantType> grantTypes = client.getAuthorizedGrantTypes();
-        if (!Collections.containsAny(grantTypes, new AuthorizationGrantType(grantType))) {
+        if (!CollectionUtils.containsAny(grantTypes, new AuthorizationGrantType(grantType))) {
             throw new TokenRequestValidationException("unauthorized_client");
         }
     }

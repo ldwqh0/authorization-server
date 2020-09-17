@@ -11,11 +11,11 @@ public class ClientRegistrationEndpoint {
     /**
      * 客户端动态注册端点
      *
-     * @param request
+     * @param request 注册请求
      */
     @PostMapping
     public void registry(@RequestBody ClientRegistrationRequest request) {
-
-//        resonse.toSuccessResponse().
+        // TODO 待实现
+        // response.toSuccessResponse().
     }
 }

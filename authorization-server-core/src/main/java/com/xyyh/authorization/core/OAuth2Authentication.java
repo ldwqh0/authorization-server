@@ -1,16 +1,16 @@
 package com.xyyh.authorization.core;
 
-import java.util.Set;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 
+import java.util.Set;
+
 public interface OAuth2Authentication extends Authentication, CredentialsContainer {
 
-    public String getClientId();
+    String getClientId();
 
-    public Set<String> getScopes();
+    Set<String> getScopes();
 
-    public String getRedirectUri();
+    Oauth2AuthorizationRequest getRequest();
 
 }

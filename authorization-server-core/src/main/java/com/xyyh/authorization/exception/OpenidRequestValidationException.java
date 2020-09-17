@@ -8,7 +8,7 @@ public class OpenidRequestValidationException extends RuntimeException {
     /**
      * 发生错误的请求
      */
-    private OpenidAuthorizationRequest request;
+    private final OpenidAuthorizationRequest request;
 
     public OpenidRequestValidationException(OpenidAuthorizationRequest request, String message) {
         super(message);

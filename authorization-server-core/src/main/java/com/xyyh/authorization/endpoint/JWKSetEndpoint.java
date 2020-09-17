@@ -16,15 +16,15 @@ import net.minidev.json.JSONObject;
 @RequestMapping("/oauth2/certs")
 public class JWKSetEndpoint {
 
-    private final JWKSet keyset;
+    private final JWKSet keySet;
 
-    public JWKSetEndpoint(JWKSet keyset) {
-        this.keyset = keyset;
+    public JWKSetEndpoint(JWKSet keySet) {
+        this.keySet = keySet;
     }
 
     @GetMapping
     @ResponseBody
     public JSONObject get() {
-        return keyset.toPublicJWKSet().toJSONObject();
+        return keySet.toPublicJWKSet().toJSONObject();
     }
 }

@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemoryAuthorizationCodeService implements OAuth2AuthorizationCodeService {
 
 
-    private Map<String, TokenPair> store = new ConcurrentHashMap<>();
+    private final Map<String, TokenPair> store = new ConcurrentHashMap<>();
 
     @Override
     public OAuth2AuthorizationCode save(OAuth2AuthorizationCode code, OAuth2Authentication authentication) {

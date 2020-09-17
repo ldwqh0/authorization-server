@@ -1,7 +1,8 @@
 package com.xyyh.authorization.configuration;
 
+import com.xyyh.authorization.client.ClientDetailsService;
+import com.xyyh.authorization.provider.ClientDetailsUserDetailsService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -10,22 +11,22 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.xyyh.authorization.client.ClientDetailsService;
-import com.xyyh.authorization.provider.ClientDetailsUserDetailsService;
-
 @Order(99)
 @EnableWebSecurity
 public class AuthorizationServerSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private ClientDetailsService clientDetailsService;
+    private final ClientDetailsService clientDetailsService;
+
+    public AuthorizationServerSecurityConfiguration(ClientDetailsService clientDetailsService) {
+        this.clientDetailsService = clientDetailsService;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.requestMatchers().antMatchers("/oauth2/token", "/oauth2/certs", "/oauth2/token/introspection");
         http.authorizeRequests()
-                .antMatchers("/oauth2/certs").permitAll()
-                .anyRequest().authenticated();
+            .antMatchers("/oauth2/certs").permitAll()
+            .anyRequest().authenticated();
         http.formLogin().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
         http.httpBasic();
@@ -35,7 +36,7 @@ public class AuthorizationServerSecurityConfiguration extends WebSecurityConfigu
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(new ClientDetailsUserDetailsService(clientDetailsService))
-                .passwordEncoder(passwordEncoder());
+            .passwordEncoder(passwordEncoder());
     }
 
     private PasswordEncoder passwordEncoder() {

@@ -3,12 +3,12 @@ package com.xyyh.authorization.collect;
 import java.util.Collection;
 import java.util.Objects;
 
-public final class Collections {
-    private Collections() {
+public final class CollectionUtils {
+    private CollectionUtils() {
 
     }
 
-    public static <T> boolean containsAny(final Collection<?> coll1, @SuppressWarnings("unchecked") final T... coll2) {
+    public static <T> boolean containsAny(final Collection<?> coll1, final T... coll2) {
         if (coll1.size() < coll2.length) {
             for (final Object aColl1 : coll1) {
                 if (contains(coll2, aColl1)) {

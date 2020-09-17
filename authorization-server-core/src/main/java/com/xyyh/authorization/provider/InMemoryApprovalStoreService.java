@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryApprovalStoreService implements ApprovalStoreService {
-    private Map<UnionKey, ApprovalResult> storage = new ConcurrentHashMap<>();
+    private final Map<UnionKey, ApprovalResult> storage = new ConcurrentHashMap<>();
 
     @Override
     public void save(String userid, String clientId, ApprovalResult result) {
@@ -27,8 +27,8 @@ public class InMemoryApprovalStoreService implements ApprovalStoreService {
     }
 
     static class UnionKey {
-        private String userid;
-        private String clientId;
+        private final String userid;
+        private final String clientId;
 
         public UnionKey(String userid, String clientId) {
             this.userid = userid;

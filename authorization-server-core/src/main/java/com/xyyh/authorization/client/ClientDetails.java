@@ -9,27 +9,21 @@ public interface ClientDetails extends Serializable {
 
     /**
      * 应用的ID
-     *
-     * @return
      */
-    public String getClientId();
+    String getClientId();
 
     /**
      * 应用的密钥
-     *
-     * @return
      */
-    public String getClientSecret();
+    String getClientSecret();
 
     /**
      * 应用的scope
-     *
-     * @return
      */
-    public Set<String> getScope();
+    Set<String> getScope();
 
-    public Set<AuthorizationGrantType> getAuthorizedGrantTypes();
+    Set<AuthorizationGrantType> getAuthorizedGrantTypes();
 
-    public Set<String> getRegisteredRedirectUris();
+    Set<String> getRegisteredRedirectUris();
 
 }

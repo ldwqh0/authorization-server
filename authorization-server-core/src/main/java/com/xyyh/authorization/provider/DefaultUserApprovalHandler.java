@@ -1,6 +1,5 @@
 package com.xyyh.authorization.provider;
 
-import com.xyyh.authorization.collect.Collections;
 import com.xyyh.authorization.core.ApprovalResult;
 import com.xyyh.authorization.core.UserApprovalHandler;
 import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
@@ -18,13 +17,11 @@ import java.util.Set;
  */
 public class DefaultUserApprovalHandler implements UserApprovalHandler {
 
-    private String scopePrefix = "scope.";
-
 
     @Override
     public ApprovalResult preCheck(OpenidAuthorizationRequest request, Authentication authentication) {
         // 返回一个默认结果，默认结果为未授权
-        return new DefaultApprovalResult();
+        return ApprovalResult.of(request.getClientId());
     }
 
     @Override
@@ -32,19 +29,13 @@ public class DefaultUserApprovalHandler implements UserApprovalHandler {
         Set<String> requestScopes = request.getScopes();
         Set<String> approvedScopes = new HashSet<>(); // 授权允许的scope
         for (String requestScope : requestScopes) {
+            String scopePrefix = "scope.";
             String approvalValue = approvalParameters.get(scopePrefix + requestScope);
             if (StringUtils.equalsIgnoreCase("true", approvalValue)) {
                 approvedScopes.add(requestScope);
             }
         }
-        DefaultApprovalResult result = new DefaultApprovalResult();
-        result.setClientId(request.getClientId());
-        result.setRedirectUri(request.getRedirectUri());
-        if (Collections.isNotEmpty(approvedScopes)) {
-            result.setApprovaled(true);
-            result.setScope(approvedScopes);
-        }
-        return result;
+        return ApprovalResult.of(request.getClientId(), approvedScopes, request.getRedirectUri());
     }
 
     @Override

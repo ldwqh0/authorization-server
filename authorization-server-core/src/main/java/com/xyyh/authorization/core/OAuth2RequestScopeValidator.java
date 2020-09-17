@@ -14,7 +14,7 @@ public interface OAuth2RequestScopeValidator {
     /**
      * 验证授权请求的正确型
      */
-    public void validateScope(OpenidAuthorizationRequest authorizationRequest, ClientDetails client)
+    void validateScope(OpenidAuthorizationRequest authorizationRequest, ClientDetails client)
             throws InvalidScopeException;
 
     /**
@@ -23,6 +23,6 @@ public interface OAuth2RequestScopeValidator {
      * @param scopes the TokenRequest to be validated
      * @param client the client that is making the request
      */
-    public void validateScope(Set<String> scopes, ClientDetails client);
+    void validateScope(Set<String> scopes, ClientDetails client);
 
 }

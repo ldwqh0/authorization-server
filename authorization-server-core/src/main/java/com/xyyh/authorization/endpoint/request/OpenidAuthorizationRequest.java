@@ -1,5 +1,6 @@
 package com.xyyh.authorization.endpoint.request;
 
+import com.xyyh.authorization.core.Oauth2AuthorizationRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.util.Assert;
@@ -7,7 +8,10 @@ import org.springframework.util.Assert;
 import java.io.Serializable;
 import java.util.*;
 
-public class OpenidAuthorizationRequest implements Serializable {
+import static com.xyyh.authorization.collect.Maps.newUnmodifiableMap;
+import static com.xyyh.authorization.collect.Sets.newUnmodifiableSet;
+
+public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, Serializable {
 
     private static final long serialVersionUID = 144721905123198109L;
 
@@ -15,21 +19,38 @@ public class OpenidAuthorizationRequest implements Serializable {
     public static final String RESPONSE_TYPE_ID_TOKEN = "id_token";
     public static final String RESPONSE_TYPE_TOKEN = "token";
 
-    private Set<String> responseTypes;
-    private String authorizationUri;
-    private AuthorizationGrantType authorizationGrantType;
-    private String clientId;
-    private String redirectUri;
-    private Set<String> scopes;
-    private String state;
-    private Map<String, Object> additionalParameters;
-    private String authorizationRequestUri;
-    private Map<String, Object> attributes;
+    private final Set<String> responseTypes;
+    private final String authorizationUri;
+    private final AuthorizationGrantType authorizationGrantType;
+    private final String clientId;
+    private final String redirectUri;
+    private final Set<String> scopes;
+    private final String state;
+    private final Map<String, Object> additionalParameters;
+    private final String authorizationRequestUri;
+    private final Map<String, Object> attributes;
 
-    private OpenidAuthorizationRequest() {
+    private OpenidAuthorizationRequest(Set<String> responseTypes,
+                                       String authorizationUri,
+                                       AuthorizationGrantType authorizationGrantType,
+                                       String clientId,
+                                       String redirectUri,
+                                       Set<String> scopes,
+                                       String state,
+                                       Map<String, Object> additionalParameters,
+                                       String authorizationRequestUri,
+                                       Map<String, Object> attributes) {
+        this.responseTypes = newUnmodifiableSet(responseTypes);
+        this.authorizationUri = authorizationUri;
+        this.authorizationGrantType = authorizationGrantType;
+        this.clientId = clientId;
+        this.redirectUri = redirectUri;
+        this.scopes = newUnmodifiableSet(scopes);
+        this.state = state;
+        this.additionalParameters = newUnmodifiableMap(additionalParameters);
+        this.authorizationRequestUri = authorizationRequestUri;
+        this.attributes = newUnmodifiableMap(attributes);
     }
-
-    ;
 
     public Set<String> getResponseTypes() {
         return responseTypes;
@@ -46,7 +67,7 @@ public class OpenidAuthorizationRequest implements Serializable {
     /**
      * 获取授权流
      *
-     * @return
+     * @return 授权流程
      */
     public OpenidAuthorizationFlow getFlow() {
         if (responseTypes.contains("code")) {
@@ -93,15 +114,23 @@ public class OpenidAuthorizationRequest implements Serializable {
     }
 
     public static class Builder {
-        private OpenidAuthorizationRequest value = new OpenidAuthorizationRequest();
-
         private static final String SPACE = " ";
+        private String redirectUri;
+        private String state;
+        private String authorizationRequestUri;
+        private Map<String, Object> additionalParameters;
+        private String authorizationUri;
+        private AuthorizationGrantType authorizationGrantType;
+        private String clientId;
+        private Set<String> scopes;
+        private Map<String, Object> attributes;
+        private Set<String> responseTypes;
 
         private Builder() {
         }
 
         public Builder redirectUri(String redirectUri) {
-            value.redirectUri = redirectUri;
+            this.redirectUri = redirectUri;
             return this;
         }
 
@@ -118,7 +147,7 @@ public class OpenidAuthorizationRequest implements Serializable {
         }
 
         public Builder state(String state) {
-            value.state = state;
+            this.state = state;
             return this;
         }
 
@@ -133,7 +162,7 @@ public class OpenidAuthorizationRequest implements Serializable {
         }
 
         public Builder authorizationRequestUri(String authorizationRequestUri) {
-            value.authorizationRequestUri = authorizationRequestUri;
+            this.authorizationRequestUri = authorizationRequestUri;
             return this;
         }
 
@@ -158,66 +187,75 @@ public class OpenidAuthorizationRequest implements Serializable {
             if (StringUtils.isNotBlank(responseType)) {
                 Set<String> responseTypes = getResponseTypes();
                 String[] responseTypeArray = StringUtils.split(responseType, " ");
-                for (String type : responseTypeArray) {
-                    responseTypes.add(type);
-                }
+                responseTypes.addAll(Arrays.asList(responseTypeArray));
             }
             return this;
         }
 
         public Builder authorizationUri(String authorizationUri) {
-            value.authorizationUri = authorizationUri;
+            this.authorizationUri = authorizationUri;
             return this;
         }
 
         public Builder authorizationGrantType(AuthorizationGrantType authorizationGrantType) {
-            value.authorizationGrantType = authorizationGrantType;
+            this.authorizationGrantType = authorizationGrantType;
             return this;
         }
 
         public Builder authorizationGrantType(String authorizationGrantType) {
-            value.authorizationGrantType = new AuthorizationGrantType(authorizationGrantType);
+            this.authorizationGrantType = new AuthorizationGrantType(authorizationGrantType);
             return this;
         }
 
         public Builder clientId(String clientId) {
-            value.clientId = clientId;
+            this.clientId = clientId;
             return this;
         }
 
         private Map<String, Object> getAdditionalParameters() {
-            if (value.additionalParameters == null) {
-                value.additionalParameters = new HashMap<>();
+            if (this.additionalParameters == null) {
+                this.additionalParameters = new HashMap<>();
             }
-            return value.additionalParameters;
+            return this.additionalParameters;
         }
 
         private Map<String, Object> getAttributes() {
-            if (value.attributes == null) {
-                value.attributes = new HashMap<String, Object>();
+            if (this.attributes == null) {
+                this.attributes = new HashMap<>();
             }
-            return value.attributes;
+            return this.attributes;
         }
 
         private Set<String> getScopes() {
-            if (value.scopes == null) {
-                value.scopes = new HashSet<>();
+            if (this.scopes == null) {
+                this.scopes = new HashSet<>();
             }
-            return value.scopes;
+            return this.scopes;
         }
 
         private Set<String> getResponseTypes() {
-            if (value.responseTypes == null) {
-                value.responseTypes = new HashSet<String>();
+            if (this.responseTypes == null) {
+                this.responseTypes = new HashSet<>();
             }
-            return value.responseTypes;
+            return this.responseTypes;
         }
 
         public OpenidAuthorizationRequest build() {
-            Set<String> responseTypes = value.responseTypes;
+            Set<String> responseTypes = this.responseTypes;
             // 判断responseType,并判断flow
             Assert.notEmpty(responseTypes, "The response type can not be empty!");
-            return value;
+            return new OpenidAuthorizationRequest(
+                this.responseTypes,
+                this.authorizationUri,
+                this.authorizationGrantType,
+                this.clientId,
+                this.redirectUri,
+                this.scopes,
+                this.state,
+                this.additionalParameters,
+                this.authorizationRequestUri,
+                this.attributes
+            );
         }
     }
 }

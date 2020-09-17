@@ -13,7 +13,7 @@ public class ServerDiscoveryEndpoint {
      * @return
      * @see <a href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</a>
      */
-    @GetMapping("openid-configuration ")
+    @GetMapping("openid-configuration")
     public String getOpenidConfiguration() {
         //TODO 待实现
         return "";

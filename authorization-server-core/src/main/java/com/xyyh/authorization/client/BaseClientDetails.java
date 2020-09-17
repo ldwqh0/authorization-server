@@ -2,44 +2,32 @@ package com.xyyh.authorization.client;
 
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.xyyh.authorization.collect.Sets.newUnmodifiableSet;
 
 public class BaseClientDetails implements ClientDetails {
 
     private static final long serialVersionUID = -7386163121370242465L;
 
-    private String clientId;
-    private String clientSecret;
-    private Set<String> scope;
-    private Set<String> registeredRedirectUris;
-    private Set<AuthorizationGrantType> authorizedGrantTypes;
-
-    public BaseClientDetails() {
-        super();
-    }
-
-    public BaseClientDetails(String clientId, String clientSecret) {
-        super();
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-    }
+    private final String clientId;
+    private final String clientSecret;
+    private final Set<String> scope;
+    private final Set<String> registeredRedirectUris;
+    private final Set<AuthorizationGrantType> authorizedGrantTypes;
 
     public BaseClientDetails(
-            String clientId,
-            String clientSecret,
-            Set<String> scope,
-            Set<String> registeredRedirectUris,
-            Set<String> authorizedGrantTypes) {
-        super();
+        String clientId,
+        String clientSecret,
+        Set<String> scope,
+        Set<String> registeredRedirectUris,
+        Set<String> authorizedGrantTypes) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
-        this.scope = scope;
-        this.registeredRedirectUris = registeredRedirectUris;
-        this.authorizedGrantTypes = authorizedGrantTypes.stream().map(AuthorizationGrantType::new)
-                .collect(Collectors.toSet());
+        this.scope = newUnmodifiableSet(scope);
+        this.registeredRedirectUris = newUnmodifiableSet(registeredRedirectUris);
+        this.authorizedGrantTypes = newUnmodifiableSet(authorizedGrantTypes, AuthorizationGrantType::new);
     }
 
     @Override
@@ -62,35 +50,6 @@ public class BaseClientDetails implements ClientDetails {
         return registeredRedirectUris;
     }
 
-    public void setRegisteredRedirectUri(Set<String> registeredRedirectUri) {
-        this.registeredRedirectUris = registeredRedirectUri;
-    }
-
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
-    }
-
-    public void setScope(Collection<String> scope) {
-        if (scope instanceof Set) {
-            this.scope = (Set<String>) scope;
-        } else {
-            this.scope = new HashSet<String>(scope);
-        }
-
-    }
-
-    public void setAuthorizedGrantTypes(Set<AuthorizationGrantType> authorizedGrantTypes) {
-        this.authorizedGrantTypes = authorizedGrantTypes;
-    }
-
-    public void setAuthorizedGrantTypes(Collection<String> authorizedGrantTypes) {
-        this.authorizedGrantTypes = authorizedGrantTypes.stream().map(AuthorizationGrantType::new)
-                .collect(Collectors.toSet());
-    }
 
     @Override
     public int hashCode() {
@@ -122,18 +81,17 @@ public class BaseClientDetails implements ClientDetails {
         } else if (!clientSecret.equals(other.clientSecret))
             return false;
         if (scope == null) {
-            if (other.scope != null)
-                return false;
-        } else if (!scope.equals(other.scope))
-            return false;
-        return true;
+            return other.scope == null;
+        } else {
+            return scope.equals(other.scope);
+        }
     }
 
     @Override
     public String toString() {
         return "BaseClientDetails [clientId=" + clientId + ", clientSecret=" + clientSecret + ", scope=" + scope
-                + ", registeredRedirectUris=" + registeredRedirectUris + ", authorizedGrantTypes="
-                + authorizedGrantTypes + "]";
+            + ", registeredRedirectUris=" + registeredRedirectUris + ", authorizedGrantTypes="
+            + authorizedGrantTypes + "]";
     }
 
     @Override

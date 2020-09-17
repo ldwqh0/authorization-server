@@ -5,17 +5,18 @@ public interface OAuth2AuthorizationCodeService {
     /**
      * 保存一个code和一个授权的关系
      *
-     * @param code
-     * @return
+     * @param code           要保存的授权码信息
+     * @param authentication 权限信息
+     * @return 包存的授权信息
      */
-    public OAuth2AuthorizationCode save(OAuth2AuthorizationCode code, OAuth2Authentication authentication);
+    OAuth2AuthorizationCode save(OAuth2AuthorizationCode code, OAuth2Authentication authentication);
 
 
     /**
-     * 消费指定授权码
+     * 消费指定授权码,返回授权信息
      *
-     * @param code
+     * @param code 授权码
      */
-    public OAuth2Authentication consume(String code);
+    OAuth2Authentication consume(String code);
 
 }

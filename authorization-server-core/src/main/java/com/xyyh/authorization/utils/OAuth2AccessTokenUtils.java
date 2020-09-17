@@ -37,9 +37,9 @@ public final class OAuth2AccessTokenUtils {
     /**
      * 转换 Introspection Response
      *
-     * @param token
-     * @param authentication
-     * @return
+     * @param token          要转换的token
+     * @param authentication 身份验证信息
+     * @return Map结果的response
      * @see <a href=
      * "https://tools.ietf.org/html/rfc7662#section-2.2">https://tools.ietf.org/html/rfc7662#section-2.2</a>
      */

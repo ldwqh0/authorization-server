@@ -13,7 +13,7 @@ import com.xyyh.authorization.client.ClientDetailsService;
 
 public class ClientDetailsUserDetailsService implements UserDetailsService {
 
-    private ClientDetailsService clientDetailsService;
+    private final ClientDetailsService clientDetailsService;
 
     public ClientDetailsUserDetailsService(ClientDetailsService clientDetailsService) {
         this.clientDetailsService = clientDetailsService;

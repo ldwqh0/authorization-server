@@ -7,7 +7,6 @@ import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import org.springframework.security.core.Authentication;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -24,33 +23,32 @@ public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler
     /**
      * 预检请求
      *
-     * @param request
-     * @param user
-     * @return
+     * @param request 要预检的请求
+     * @param user    请求用户
+     * @return 预检测结果
      */
     @Override
     public ApprovalResult preCheck(OpenidAuthorizationRequest request, Authentication user) {
-        /**
-         * 保存的scope大于请求的scope时，返回之前的授权信息
-         */
-        Set<String> requestScopes = request.getScopes();
+        // 保存的scope大于请求的scope时，返回之前的授权信息
+        final Set<String> requestScopes = request.getScopes();
+        final String requestRedirectUri = request.getRedirectUri();
         return this.approvalStoreService.get(user.getName(), request.getClientId())
-                .filter(preResult -> preResult.getScopes().containsAll(requestScopes))
-                .filter(preResult -> Objects.equals(preResult.getRedirectUri(), request.getRedirectUri()))
-                .orElseGet(DefaultApprovalResult::new);
+            .filter(preResult -> preResult.getScopes().containsAll(requestScopes))
+            .filter(preResult -> preResult.getRedirectUris().contains(requestRedirectUri))
+            .orElseGet(() -> ApprovalResult.of(request.getClientId()));
     }
 
     /**
-     * 授权请求
+     * 根据用户的请求参数对请求进行校验
      *
-     * @param request
-     * @param user
-     * @param approvalParameters
-     * @return
+     * @param request            授权请求
+     * @param user               授权用户
+     * @param approvalParameters 用户请求参数
+     * @return 授权结果
      */
     @Override
     public ApprovalResult approval(OpenidAuthorizationRequest request, Authentication user,
-            Map<String, String> approvalParameters) {
+                                   Map<String, String> approvalParameters) {
         ApprovalResult result = super.approval(request, user, approvalParameters);
         approvalStoreService.save(user.getName(), request.getClientId(), result);
         return result;
@@ -59,8 +57,8 @@ public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler
     /**
      * 更新授权请求
      *
-     * @param result
-     * @param user
+     * @param result 授权结果
+     * @param user   用户信息
      */
     @Override
     public void updateAfterApproval(ApprovalResult result, Authentication user) {

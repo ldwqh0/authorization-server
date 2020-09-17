@@ -6,26 +6,26 @@ public interface ApprovalStoreService {
     /**
      * 保存一条授权信息
      *
-     * @param userid
-     * @param clientId
-     * @param result
+     * @param userid   用户id
+     * @param clientId 连接id
+     * @param result   授权结果
      */
-    public void save(String userid, String clientId, ApprovalResult result);
+    void save(String userid, String clientId, ApprovalResult result);
 
     /**
      * 获取授权信息
      *
-     * @param userid
-     * @param clientId
-     * @return
+     * @param userid   userId
+     * @param clientId clientId
+     * @return 用户的授权结果信息
      */
-    public Optional<ApprovalResult> get(String userid, String clientId);
+    Optional<ApprovalResult> get(String userid, String clientId);
 
     /**
      * 删除授权信息
      *
-     * @param userid
-     * @param clientId
+     * @param userid   userId
+     * @param clientId clientId
      */
-    public void delete(String userid, String clientId);
+    void delete(String userid, String clientId);
 }

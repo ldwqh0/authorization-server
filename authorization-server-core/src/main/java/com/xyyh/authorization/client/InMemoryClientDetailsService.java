@@ -8,7 +8,7 @@ import com.xyyh.authorization.exception.NoSuchClientException;
 
 public class InMemoryClientDetailsService implements ClientDetailsService {
 
-    private Map<String, ClientDetails> clients = new ConcurrentHashMap<>();
+    private final Map<String, ClientDetails> clients = new ConcurrentHashMap<>();
 
     @Override
     public ClientDetails loadClientByClientId(String clientId) {

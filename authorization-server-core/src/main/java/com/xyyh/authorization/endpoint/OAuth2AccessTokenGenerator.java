@@ -14,7 +14,7 @@ import com.xyyh.authorization.core.OAuth2Authentication;
 
 public class OAuth2AccessTokenGenerator {
 
-    private static StringKeyGenerator stringKeyGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
+    private static final StringKeyGenerator stringKeyGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
 
     public static OAuth2AccessToken generateAccessToken(OAuth2Authentication authenticationToken) {
         Instant issuedAt = Instant.now();

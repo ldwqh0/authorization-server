@@ -13,26 +13,26 @@ public interface UserApprovalHandler {
     /**
      * 对请求进行预检
      *
-     * @param request
-     * @param user
-     * @return
+     * @param request 授权请求
+     * @param user    授权用户
+     * @return 预检结果
      */
-    public ApprovalResult preCheck(OpenidAuthorizationRequest request, Authentication user);
+    ApprovalResult preCheck(OpenidAuthorizationRequest request, Authentication user);
 
     /**
-     * 进行请求验证
+     * 根据请求参数对请求进行验证
      *
-     * @param request
-     * @param approvalParameters
-     * @return
+     * @param request            授权请求
+     * @param approvalParameters 用户提交的授权参数
+     * @return 授权验证结果
      */
-    public ApprovalResult approval(OpenidAuthorizationRequest request, Authentication user, Map<String, String> approvalParameters);
+    ApprovalResult approval(OpenidAuthorizationRequest request, Authentication user, Map<String, String> approvalParameters);
 
     /**
-     * 更新授权结果
+     * 更新某个用户的授权结果
      *
-     * @param result
-     * @param user
+     * @param result 授权请求
+     * @param user   授权用户
      */
-    public void updateAfterApproval(ApprovalResult result, Authentication user);
+    void updateAfterApproval(ApprovalResult result, Authentication user);
 }

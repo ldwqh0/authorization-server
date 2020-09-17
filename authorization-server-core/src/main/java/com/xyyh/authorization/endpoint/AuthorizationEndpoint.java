@@ -44,9 +44,9 @@ public class AuthorizationEndpoint {
     private static final String OAUTH2_AUTHORIZATION_REQUEST = "authorizationRequest";
     private static final String USER_OAUTH_APPROVAL = "user_oauth_approval";
 
-    private StringKeyGenerator authorizationCodeGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
+    private final StringKeyGenerator authorizationCodeGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
 
-    private int periodOfValidity = 3 * 60;
+    private final int periodOfValidity = 180;
 
     @Autowired
     private ClientDetailsService clientDetailsService;
@@ -102,7 +102,7 @@ public class AuthorizationEndpoint {
             ApprovalResult preResult = userApprovalHandler.preCheck(authorizationRequest, user);
 
             // 进行请求预检
-            if (preResult.isApprovaled()) {
+            if (preResult.isApproved()) {
                 sessionStatus.setComplete();
                 return new ModelAndView(getRedirectView(authorizationRequest, preResult, user));
             } else {
@@ -118,7 +118,7 @@ public class AuthorizationEndpoint {
         } catch (UnsupportedResponseTypeException ex3) {
             throw new OpenidRequestValidationException(authorizationRequest, "unsupported_response_type");
         } finally {
-
+            // TODO do nothing here
         }
     }
 
@@ -145,7 +145,7 @@ public class AuthorizationEndpoint {
         ApprovalResult approvalResult = userApprovalHandler.approval(authorizationRequest, userAuthentication,
             approvalParameters);
         // 如果授权不通过，直接返回
-        if (!approvalResult.isApprovaled()) {
+        if (!approvalResult.isApproved()) {
             throw new OpenidRequestValidationException(authorizationRequest, "access_denied");
         } else {
             return getRedirectView(authorizationRequest, approvalResult, userAuthentication);
@@ -176,7 +176,7 @@ public class AuthorizationEndpoint {
      */
     private View getImplicitFlowResponse(OpenidAuthorizationRequest request, ApprovalResult result,
                                          Authentication userAuthentication) {
-        OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(result, userAuthentication);
+        OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(result, userAuthentication, request);
         OAuth2AccessToken accessToken = accessTokenService
             .save(OAuth2AccessTokenGenerator.generateAccessToken(authentication), authentication);
         Map<String, ?> fragment = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
@@ -208,7 +208,7 @@ public class AuthorizationEndpoint {
         // 创建并保存授权码
         OAuth2AuthorizationCode code = authorizationCodeService.save(
             new DefaultOAuth2AuthorizationCode(codeValue, issueAt, expireAt),
-            new DefaultOAuth2AuthenticationToken(result, userAuthentication));
+            new DefaultOAuth2AuthenticationToken(result, userAuthentication, request));
         query.put("code", code.getValue());
         return buildRedirectView(request.getRedirectUri(), query, null);
     }

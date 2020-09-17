@@ -33,7 +33,7 @@ public class TokenIntrospectionEndpoint {
      *
      * Content-Type: application/json for a regular response,
      * application/token-introspection+jwt for a JWT-secured response.<br>
-     * 
+     *
      * 如果请求类型是
      *
      * @see <a href=
@@ -41,7 +41,7 @@ public class TokenIntrospectionEndpoint {
      * @param token
      * @return
      */
-    @PostMapping(consumes = { "application/x-www-form-urlencoded" }, produces = {})
+    @PostMapping(consumes = { "application/x-www-form-urlencoded" })
     @ResponseBody
     public Map<String, ?> introspection(
             @RequestParam("token") String token,
@@ -54,7 +54,7 @@ public class TokenIntrospectionEndpoint {
 
     /**
      * 如果请求的accept是application/jwt,返回jwt
-     * 
+     *
      * @see <a href=
      *      "https://tools.ietf.org/html/draft-ietf-oauth-jwt-introspection-response-09">https://tools.ietf.org/html/draft-ietf-oauth-jwt-introspection-response-09</a>
      * @return

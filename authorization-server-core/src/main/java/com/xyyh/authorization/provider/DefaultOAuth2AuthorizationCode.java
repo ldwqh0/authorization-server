@@ -6,11 +6,11 @@ import java.time.Instant;
 
 public class DefaultOAuth2AuthorizationCode implements OAuth2AuthorizationCode {
 
-    private String value;
+    private final String value;
 
-    private Instant issuedAt;
+    private final Instant issuedAt;
 
-    private Instant expiresAt;
+    private final Instant expiresAt;
 
     public DefaultOAuth2AuthorizationCode(String value, Instant issuedAt, Instant expiresAt) {
         this.value = value;
