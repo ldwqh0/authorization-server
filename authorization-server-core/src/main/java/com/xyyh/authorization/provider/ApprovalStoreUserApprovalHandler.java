@@ -14,11 +14,12 @@ import java.util.Set;
  */
 public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler implements UserApprovalHandler {
 
-    private ApprovalStoreService approvalStoreService;
+    private final ApprovalStoreService approvalStoreService;
 
-    public void setApprovalStoreService(ApprovalStoreService approvalStoreService) {
+    public ApprovalStoreUserApprovalHandler(ApprovalStoreService approvalStoreService) {
         this.approvalStoreService = approvalStoreService;
     }
+
 
     /**
      * 预检请求

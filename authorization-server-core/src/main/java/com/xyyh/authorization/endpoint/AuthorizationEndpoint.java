@@ -329,7 +329,7 @@ public class AuthorizationEndpoint {
     public View handleError(OpenidRequestValidationException ex) {
         OpenidAuthorizationRequest authorizationRequest = ex.getRequest();
 //        String uri = authorizationRequest.getRedirectUri();
-        Map<String, String> error = Maps.newHashMap();
+        Map<String, String> error = Maps.hashMap();
         error.put("error", ex.getMessage());
         String state = authorizationRequest.getState();
         if (StringUtils.isNotEmpty(state)) {

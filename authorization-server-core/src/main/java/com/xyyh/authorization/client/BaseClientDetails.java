@@ -1,11 +1,11 @@
 package com.xyyh.authorization.client;
 
+import com.xyyh.authorization.collect.Sets;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import static com.xyyh.authorization.collect.Sets.newUnmodifiableSet;
+import static com.xyyh.authorization.collect.Sets.*;
 
 public class BaseClientDetails implements ClientDetails {
 
@@ -25,9 +25,9 @@ public class BaseClientDetails implements ClientDetails {
         Set<String> authorizedGrantTypes) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
-        this.scope = newUnmodifiableSet(scope);
-        this.registeredRedirectUris = newUnmodifiableSet(registeredRedirectUris);
-        this.authorizedGrantTypes = newUnmodifiableSet(authorizedGrantTypes, AuthorizationGrantType::new);
+        this.scope = hashSet(scope);
+        this.registeredRedirectUris = hashSet(registeredRedirectUris);
+        this.authorizedGrantTypes = transform(authorizedGrantTypes, AuthorizationGrantType::new);
     }
 
     @Override

@@ -17,19 +17,15 @@ public final class Maps {
         return !isEmpty(map);
     }
 
-    public static <K, V> Map<K, V> newHashMap() {
+    public static <K, V> Map<K, V> hashMap() {
         return new HashMap<>();
     }
 
-    public static <K, V> Map<K, V> newHashMap(Map<K, V> map) {
+    public static <K, V> Map<K, V> hashMap(Map<K, V> map) {
         return map == null ? new HashMap<>() : new HashMap<>(map);
     }
 
-    public static <K, V> Map<K, V> newUnmodifiableMap(Map<K, V> map) {
-        return Collections.unmodifiableMap(newHashMap(map));
-    }
-
-    public static <K, V> LinkedHashMap<K, V> newLinkedHashMap() {
+    public static <K, V> LinkedHashMap<K, V> linkedHashMap() {
         return new LinkedHashMap<>();
     }
 }

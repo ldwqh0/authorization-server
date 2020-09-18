@@ -25,7 +25,7 @@ public final class OAuth2AccessTokenUtils {
         if (expiresAt != null) {
             expiresIn = ChronoUnit.SECONDS.between(Instant.now(), expiresAt);
         }
-        Map<String, Object> result = Maps.newLinkedHashMap();
+        Map<String, Object> result = Maps.linkedHashMap();
         result.put("access_token", accessToken.getTokenValue());
         result.put("token_type", accessToken.getTokenType().getValue());
         result.put("expires_in", expiresIn);
@@ -45,7 +45,7 @@ public final class OAuth2AccessTokenUtils {
      */
     public static Map<String, ?> converterToken2IntrospectionResponse(OAuth2AccessToken token,
                                                                       OAuth2Authentication authentication) {
-        Map<String, Object> response = Maps.newLinkedHashMap();
+        Map<String, Object> response = Maps.linkedHashMap();
         // 如果没有找到相关的token直接返回false
         // TODO 需要检擦token是否过期
         if (Objects.isNull(token)) {

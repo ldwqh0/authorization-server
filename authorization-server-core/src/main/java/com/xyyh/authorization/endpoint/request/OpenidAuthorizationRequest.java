@@ -8,8 +8,8 @@ import org.springframework.util.Assert;
 import java.io.Serializable;
 import java.util.*;
 
-import static com.xyyh.authorization.collect.Maps.newUnmodifiableMap;
-import static com.xyyh.authorization.collect.Sets.newUnmodifiableSet;
+import static com.xyyh.authorization.collect.Maps.hashMap;
+import static com.xyyh.authorization.collect.Sets.hashSet;
 
 public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, Serializable {
 
@@ -40,20 +40,20 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
                                        Map<String, Object> additionalParameters,
                                        String authorizationRequestUri,
                                        Map<String, Object> attributes) {
-        this.responseTypes = newUnmodifiableSet(responseTypes);
+        this.responseTypes = hashSet(responseTypes);
         this.authorizationUri = authorizationUri;
         this.authorizationGrantType = authorizationGrantType;
         this.clientId = clientId;
         this.redirectUri = redirectUri;
-        this.scopes = newUnmodifiableSet(scopes);
+        this.scopes = hashSet(scopes);
         this.state = state;
-        this.additionalParameters = newUnmodifiableMap(additionalParameters);
+        this.additionalParameters = hashMap(additionalParameters);
         this.authorizationRequestUri = authorizationRequestUri;
-        this.attributes = newUnmodifiableMap(attributes);
+        this.attributes = hashMap(attributes);
     }
 
     public Set<String> getResponseTypes() {
-        return responseTypes;
+        return Collections.unmodifiableSet(responseTypes);
     }
 
     public String getAuthorizationUri() {
@@ -90,7 +90,7 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
     }
 
     public Set<String> getScopes() {
-        return scopes;
+        return Collections.unmodifiableSet(scopes);
     }
 
     public String getState() {
@@ -98,7 +98,7 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
     }
 
     public Map<String, Object> getAdditionalParameters() {
-        return additionalParameters;
+        return Collections.unmodifiableMap(additionalParameters);
     }
 
     public String getAuthorizationRequestUri() {
@@ -106,7 +106,7 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
     }
 
     public Map<String, Object> getAttributes() {
-        return attributes;
+        return Collections.unmodifiableMap(attributes);
     }
 
     public static Builder builder() {

@@ -13,18 +13,13 @@ import com.xyyh.authorization.endpoint.JWKSetEndpoint;
 import com.xyyh.authorization.endpoint.TokenEndpoint;
 import com.xyyh.authorization.endpoint.TokenIntrospectionEndpoint;
 import com.xyyh.authorization.provider.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Objects;
-
 @Configuration
 public class AuthorizationServerConfiguration {
 
-    @Autowired(required = false)
-    private ApprovalStoreService approvalStoreService;
 
     @Bean
     @ConditionalOnMissingBean({ClientDetailsService.class})
@@ -98,13 +93,13 @@ public class AuthorizationServerConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(UserApprovalHandler.class)
-    public UserApprovalHandler userApprovalHandler() {
-        ApprovalStoreUserApprovalHandler userApprovalHandler = new ApprovalStoreUserApprovalHandler();
-        if (Objects.isNull(this.approvalStoreService)) {
-            userApprovalHandler.setApprovalStoreService(new InMemoryApprovalStoreService());
-        } else {
-            userApprovalHandler.setApprovalStoreService(approvalStoreService);
-        }
-        return userApprovalHandler;
+    public UserApprovalHandler userApprovalHandler(ApprovalStoreService approvalStoreService) {
+        return new ApprovalStoreUserApprovalHandler(approvalStoreService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(ApprovalStoreService.class)
+    public ApprovalStoreService approvalStoreService() {
+        return new InMemoryApprovalStoreService();
     }
 }

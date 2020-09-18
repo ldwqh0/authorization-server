@@ -83,7 +83,7 @@ public class TokenEndpoint {
         validGrantTypes(client, "password");
 
         // 验证scope
-        Set<String> scopes = Sets.newHashSet(scope.split(SPACE));
+        Set<String> scopes = Sets.hashSet(scope.split(SPACE));
         oAuth2RequestValidator.validateScope(scopes, client);
 
         // 认证用户
@@ -177,7 +177,7 @@ public class TokenEndpoint {
      */
     @PostMapping
     public ResponseEntity<Map<String, ?>> otherwise() {
-        Map<String, Object> response = Maps.newHashMap();
+        Map<String, Object> response = Maps.hashMap();
         response.put("error", "unsupported_grant_type");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
@@ -190,7 +190,7 @@ public class TokenEndpoint {
      */
     @ExceptionHandler({TokenRequestValidationException.class})
     public ResponseEntity<Map<String, ?>> handleException(Exception ex) {
-        Map<String, Object> response = Maps.newHashMap();
+        Map<String, Object> response = Maps.hashMap();
         response.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }

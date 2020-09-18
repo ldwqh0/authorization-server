@@ -46,7 +46,7 @@ public interface ApprovalResult extends Serializable {
     }
 
     public static ApprovalResult of(String clientId, Set<String> scopes, String... redirectUris) {
-        return new DefaultApprovalResult(clientId, scopes, Sets.newHashSet(redirectUris));
+        return new DefaultApprovalResult(clientId, scopes, Sets.hashSet(redirectUris));
     }
 
 }
