@@ -3,22 +3,37 @@ package com.xyyh.authorization.provider;
 import com.xyyh.authorization.core.ApprovalResult;
 import com.xyyh.authorization.core.ApprovalStoreService;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.io.Serializable;
+import java.time.ZonedDateTime;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.xyyh.authorization.collect.Sets.hashSet;
+import static com.xyyh.authorization.collect.Sets.merge;
+
 public class InMemoryApprovalStoreService implements ApprovalStoreService {
-    private final Map<UnionKey, ApprovalResult> storage = new ConcurrentHashMap<>();
+    private final Map<UnionKey, ApprovalResultModel> storage = new ConcurrentHashMap<>();
+
+    static String[] mergeToArray(Set<String> origin, String... add) {
+        Set<String> result = merge(origin, add);
+        return result.toArray(new String[result.size()]);
+    }
+
 
     @Override
     public void save(String userid, String clientId, ApprovalResult result) {
-        this.storage.put(new UnionKey(userid, clientId), result);
+        UnionKey key = new UnionKey(userid, clientId);
+        ApprovalResultModel exit = storage.get(key);
+        if (exit == null) {
+            storage.put(key, new ApprovalResultModel(result));
+        } else {
+            exit.merge(result);
+        }
     }
 
     @Override
     public Optional<ApprovalResult> get(String userid, String clientId) {
-        return Optional.ofNullable(this.storage.get(new UnionKey(userid, clientId)));
+        return Optional.ofNullable(storage.get(new UnionKey(userid, clientId))).map(ApprovalResultModel::toApprovalResult);
     }
 
     @Override
@@ -26,7 +41,8 @@ public class InMemoryApprovalStoreService implements ApprovalStoreService {
         this.storage.remove(new UnionKey(userid, clientId));
     }
 
-    static class UnionKey {
+    static class UnionKey implements Serializable {
+        private static final long serialVersionUID = -4656419319790202947L;
         private final String userid;
         private final String clientId;
 
@@ -39,9 +55,9 @@ public class InMemoryApprovalStoreService implements ApprovalStoreService {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            UnionKey unionKey = (UnionKey) o;
-            return Objects.equals(userid, unionKey.userid) &&
-                Objects.equals(clientId, unionKey.clientId);
+            UnionKey key = (UnionKey) o;
+            return Objects.equals(userid, key.userid) &&
+                Objects.equals(clientId, key.clientId);
         }
 
         @Override
@@ -49,4 +65,34 @@ public class InMemoryApprovalStoreService implements ApprovalStoreService {
             return Objects.hash(userid, clientId);
         }
     }
+
+    static class ApprovalResultModel implements Serializable {
+        private static final long serialVersionUID = -794253127779866641L;
+        private String[] redirectUris;
+        private String[] scopes;
+        private ZonedDateTime expireAt;
+
+        public ApprovalResultModel(ApprovalResult result) {
+            this.scopes = mergeToArray(result.getScopes());
+            this.redirectUris = mergeToArray(result.getRedirectUris());
+            this.expireAt = result.getExpireAt();
+        }
+
+        /**
+         * 将一个新的请求合并到现有请求中
+         *
+         * @param result
+         */
+        public void merge(ApprovalResult result) {
+            this.scopes = mergeToArray(result.getScopes(), this.scopes);
+            this.redirectUris = mergeToArray(result.getRedirectUris(), this.redirectUris);
+            this.expireAt = result.getExpireAt();
+        }
+
+        public ApprovalResult toApprovalResult() {
+            return ApprovalResult.of(hashSet(scopes), hashSet(redirectUris));
+        }
+    }
 }
+
+

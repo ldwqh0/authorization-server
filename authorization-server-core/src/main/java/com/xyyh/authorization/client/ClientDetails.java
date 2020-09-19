@@ -7,6 +7,8 @@ import java.util.Set;
 
 public interface ClientDetails extends Serializable {
 
+    boolean isAutoApproval();
+
     /**
      * 应用的ID
      */

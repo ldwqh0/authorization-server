@@ -6,7 +6,8 @@ import com.xyyh.authorization.core.UserApprovalHandler;
 import com.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import org.springframework.security.core.Authentication;
 
-import java.util.Map;
+import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -20,7 +21,6 @@ public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler
         this.approvalStoreService = approvalStoreService;
     }
 
-
     /**
      * 预检请求
      *
@@ -33,26 +33,20 @@ public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler
         // 保存的scope大于请求的scope时，返回之前的授权信息
         final Set<String> requestScopes = request.getScopes();
         final String requestRedirectUri = request.getRedirectUri();
-        return this.approvalStoreService.get(user.getName(), request.getClientId())
-            .filter(preResult -> preResult.getScopes().containsAll(requestScopes))
-            .filter(preResult -> preResult.getRedirectUris().contains(requestRedirectUri))
-            .orElseGet(() -> ApprovalResult.of(request.getClientId()));
-    }
-
-    /**
-     * 根据用户的请求参数对请求进行校验
-     *
-     * @param request            授权请求
-     * @param user               授权用户
-     * @param approvalParameters 用户请求参数
-     * @return 授权结果
-     */
-    @Override
-    public ApprovalResult approval(OpenidAuthorizationRequest request, Authentication user,
-                                   Map<String, String> approvalParameters) {
-        ApprovalResult result = super.approval(request, user, approvalParameters);
-        approvalStoreService.save(user.getName(), request.getClientId(), result);
-        return result;
+        final String username = user.getName();
+        final String clientId = request.getClientId();
+        Optional<ApprovalResult> savedResult = this.approvalStoreService.get(username, clientId);
+        if (savedResult.isPresent()) {
+            ApprovalResult preResult = savedResult.get();
+            if (preResult.getExpireAt().isAfter(ZonedDateTime.now())) {
+                if (preResult.getScopes().containsAll(requestScopes) && preResult.getRedirectUris().contains(requestRedirectUri)) {
+                    return ApprovalResult.of(requestScopes, requestRedirectUri);
+                }
+            } else {
+                this.approvalStoreService.delete(username, clientId);
+            }
+        }
+        return ApprovalResult.of();
     }
 
     /**
@@ -62,7 +56,7 @@ public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler
      * @param user   用户信息
      */
     @Override
-    public void updateAfterApproval(ApprovalResult result, Authentication user) {
-        this.approvalStoreService.save(user.getName(), result.getClientId(), result);
+    public void updateAfterApproval(OpenidAuthorizationRequest request, Authentication user, ApprovalResult result) {
+        this.approvalStoreService.save(user.getName(), request.getClientId(), result);
     }
 }

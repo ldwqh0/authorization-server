@@ -58,13 +58,13 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public Object getPrincipal() {
-        return this.userAuthentication == null ? this.approvalResult.getClientId()
+        return this.userAuthentication == null ? this.request.getClientId()
             : this.userAuthentication.getPrincipal();
     }
 
     @Override
     public String getName() {
-        return Objects.isNull(this.userAuthentication) ? this.approvalResult.getClientId()
+        return Objects.isNull(this.userAuthentication) ? this.request.getClientId()
             : this.userAuthentication.getName();
     }
 
@@ -85,7 +85,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public String getClientId() {
-        return approvalResult.getClientId();
+        return request.getClientId();
     }
 
     @Override

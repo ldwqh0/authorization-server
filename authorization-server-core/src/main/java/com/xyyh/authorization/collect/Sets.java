@@ -11,11 +11,12 @@ public final class Sets {
     private Sets() {
     }
 
-    public static <K> Set<K> hashSet(K... values) {
+    public static <K> HashSet<K> hashSet(K... values) {
         return new HashSet<>(Arrays.asList(values));
     }
 
-    public static <K> Set<K> hashSet(Collection<K> collection) {
+
+    public static <K> HashSet<K> hashSet(Collection<K> collection) {
         if (collection == null) {
             return new HashSet<>();
         } else {
@@ -25,6 +26,14 @@ public final class Sets {
 
     public static <IN, OUT> Set<OUT> transform(Set<IN> in, Function<IN, OUT> converter) {
         return in.stream().map(converter).collect(Collectors.toSet());
+    }
+
+    public static <K> Set<K> merge(Set<K> origin, K... e) {
+        HashSet<K> result = hashSet(origin);
+        if (e != null) {
+            result.addAll(Arrays.asList(e));
+        }
+        return result;
     }
 
 }

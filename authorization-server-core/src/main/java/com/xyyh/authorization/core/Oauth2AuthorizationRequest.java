@@ -9,7 +9,7 @@ import java.util.Set;
 public interface Oauth2AuthorizationRequest extends Serializable {
     Set<String> getResponseTypes();
 
-    String getAuthorizationUri();
+//    String getAuthorizationUri();
 
     AuthorizationGrantType getAuthorizationGrantType();
 

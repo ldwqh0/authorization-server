@@ -34,5 +34,5 @@ public interface UserApprovalHandler {
      * @param result 授权请求
      * @param user   授权用户
      */
-    void updateAfterApproval(ApprovalResult result, Authentication user);
+    void updateAfterApproval(OpenidAuthorizationRequest request, Authentication user, ApprovalResult result);
 }

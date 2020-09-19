@@ -20,7 +20,7 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
     public static final String RESPONSE_TYPE_TOKEN = "token";
 
     private final Set<String> responseTypes;
-    private final String authorizationUri;
+    //    private final String authorizationUri;
     private final AuthorizationGrantType authorizationGrantType;
     private final String clientId;
     private final String redirectUri;
@@ -31,7 +31,6 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
     private final Map<String, Object> attributes;
 
     private OpenidAuthorizationRequest(Set<String> responseTypes,
-                                       String authorizationUri,
                                        AuthorizationGrantType authorizationGrantType,
                                        String clientId,
                                        String redirectUri,
@@ -41,7 +40,7 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
                                        String authorizationRequestUri,
                                        Map<String, Object> attributes) {
         this.responseTypes = hashSet(responseTypes);
-        this.authorizationUri = authorizationUri;
+//        this.authorizationUri = authorizationUri;
         this.authorizationGrantType = authorizationGrantType;
         this.clientId = clientId;
         this.redirectUri = redirectUri;
@@ -56,9 +55,9 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
         return Collections.unmodifiableSet(responseTypes);
     }
 
-    public String getAuthorizationUri() {
-        return authorizationUri;
-    }
+//    public String getAuthorizationUri() {
+//        return authorizationUri;
+//    }
 
     public AuthorizationGrantType getAuthorizationGrantType() {
         return authorizationGrantType;
@@ -119,7 +118,7 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
         private String state;
         private String authorizationRequestUri;
         private Map<String, Object> additionalParameters;
-        private String authorizationUri;
+        //        private String authorizationUri;
         private AuthorizationGrantType authorizationGrantType;
         private String clientId;
         private Set<String> scopes;
@@ -192,10 +191,10 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
             return this;
         }
 
-        public Builder authorizationUri(String authorizationUri) {
-            this.authorizationUri = authorizationUri;
-            return this;
-        }
+//        public Builder authorizationUri(String authorizationUri) {
+//            this.authorizationUri = authorizationUri;
+//            return this;
+//        }
 
         public Builder authorizationGrantType(AuthorizationGrantType authorizationGrantType) {
             this.authorizationGrantType = authorizationGrantType;
@@ -246,7 +245,6 @@ public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, S
             Assert.notEmpty(responseTypes, "The response type can not be empty!");
             return new OpenidAuthorizationRequest(
                 this.responseTypes,
-                this.authorizationUri,
                 this.authorizationGrantType,
                 this.clientId,
                 this.redirectUri,

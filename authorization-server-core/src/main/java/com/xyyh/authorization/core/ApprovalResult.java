@@ -4,8 +4,11 @@ import com.xyyh.authorization.collect.CollectionUtils;
 import com.xyyh.authorization.collect.Sets;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Set;
+
+import static com.xyyh.authorization.collect.Sets.hashSet;
 
 /**
  * 表示授权结果
@@ -13,11 +16,6 @@ import java.util.Set;
  * @author LiDong
  */
 public interface ApprovalResult extends Serializable {
-
-    /**
-     * 授权的clientId
-     */
-    String getClientId();
 
     /**
      * 授权结果
@@ -33,20 +31,26 @@ public interface ApprovalResult extends Serializable {
 
     Set<String> getRedirectUris();
 
-    public static ApprovalResult of(String clientId) {
-        return of(clientId, Collections.emptySet(), Collections.emptySet());
+    ZonedDateTime getExpireAt();
+
+    static ApprovalResult of() {
+        return of(Collections.emptySet(), Collections.emptySet());
     }
 
-    public static ApprovalResult of(String clientId, Set<String> scopes) {
-        return of(clientId, scopes, Collections.emptySet());
+    static ApprovalResult of(Set<String> scopes) {
+        return of(scopes, Collections.emptySet());
     }
 
-    public static ApprovalResult of(String clientId, Set<String> scopes, Set<String> redirectUris) {
-        return new DefaultApprovalResult(clientId, scopes, redirectUris);
+    static ApprovalResult of(Set<String> scopes, Set<String> redirectUris) {
+        return new DefaultApprovalResult(scopes, redirectUris);
     }
 
-    public static ApprovalResult of(String clientId, Set<String> scopes, String... redirectUris) {
-        return new DefaultApprovalResult(clientId, scopes, Sets.hashSet(redirectUris));
+    static ApprovalResult of(Set<String> scopes, String... redirectUris) {
+        return new DefaultApprovalResult(scopes, hashSet(redirectUris));
+    }
+
+    static ApprovalResult of(Set<String> scopes, Set<String> redirectUris, ZonedDateTime expireAt) {
+        return new DefaultApprovalResult(scopes, redirectUris, expireAt);
     }
 
 }
@@ -55,33 +59,34 @@ class DefaultApprovalResult implements ApprovalResult {
 
     private static final long serialVersionUID = 8068718072536160467L;
 
-    private final String clientId;
-
     private final Set<String> redirectUris;
 
     private final Set<String> scopes;
 
-    public DefaultApprovalResult(String clientId, Set<String> scopes, Set<String> redirectUris) {
-        this.clientId = clientId;
-        this.redirectUris = redirectUris;
-        this.scopes = scopes;
+    private final ZonedDateTime expireAt;
+
+    DefaultApprovalResult(Set<String> scopes, Set<String> redirectUris) {
+        this(scopes, redirectUris, ZonedDateTime.now().plusDays(30));
     }
 
+    DefaultApprovalResult(Set<String> scopes, Set<String> redirectUris, ZonedDateTime expireAt) {
+        this.redirectUris = redirectUris;
+        this.scopes = scopes;
+        this.expireAt = expireAt;
+    }
 
     @Override
     public Set<String> getScopes() {
         return this.scopes;
     }
 
-
-    @Override
-    public String getClientId() {
-        return this.clientId;
-    }
-
-
     @Override
     public Set<String> getRedirectUris() {
         return redirectUris;
+    }
+
+    @Override
+    public ZonedDateTime getExpireAt() {
+        return expireAt;
     }
 }

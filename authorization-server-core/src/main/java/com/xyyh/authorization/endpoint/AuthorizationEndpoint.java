@@ -99,17 +99,26 @@ public class AuthorizationEndpoint {
             if (!redirectUriValidator.validate(redirectUri, client.getRegisteredRedirectUris())) {
                 throw new OpenidRequestValidationException(authorizationRequest, "invalid_redirect_uri");
             }
-            ApprovalResult preResult = userApprovalHandler.preCheck(authorizationRequest, user);
-
-            // 进行请求预检
-            if (preResult.isApproved()) {
+            if (client.isAutoApproval()) {
                 sessionStatus.setComplete();
-                return new ModelAndView(getRedirectView(authorizationRequest, preResult, user));
+                return new ModelAndView(getRedirectView(
+                    authorizationRequest,
+                    ApprovalResult.of(authorizationRequest.getScopes(), authorizationRequest.getRedirectUri()),
+                    user)
+                );
             } else {
-                model.put(OAUTH2_AUTHORIZATION_REQUEST, authorizationRequest);
-                // 如果预检没有通过，跳转到授权页面
-                return new ModelAndView("oauth/confirm_access", model);
+                ApprovalResult preResult = userApprovalHandler.preCheck(authorizationRequest, user);
+                // 进行请求预检
+                if (preResult.isApproved()) {
+                    sessionStatus.setComplete();
+                    return new ModelAndView(getRedirectView(authorizationRequest, preResult, user));
+                } else {
+                    model.put(OAUTH2_AUTHORIZATION_REQUEST, authorizationRequest);
+                    // 如果预检没有通过，跳转到授权页面
+                    return new ModelAndView("oauth/confirm_access", model);
+                }
             }
+
             // TODO invalid_request error
         } catch (NoSuchClientException ex) {
             throw new OpenidRequestValidationException(authorizationRequest, "unauthorized_client");
@@ -137,8 +146,7 @@ public class AuthorizationEndpoint {
         Map<String, ?> model,
         SessionStatus sessionStatus,
         Authentication userAuthentication) {
-        OpenidAuthorizationRequest authorizationRequest = (OpenidAuthorizationRequest) model
-            .get(OAUTH2_AUTHORIZATION_REQUEST);
+        OpenidAuthorizationRequest authorizationRequest = (OpenidAuthorizationRequest) model.get(OAUTH2_AUTHORIZATION_REQUEST);
         // 当提交用户授权信息之后，将session标记为完成
         sessionStatus.setComplete();
         // 获取用户授权结果
@@ -148,6 +156,7 @@ public class AuthorizationEndpoint {
         if (!approvalResult.isApproved()) {
             throw new OpenidRequestValidationException(authorizationRequest, "access_denied");
         } else {
+            userApprovalHandler.updateAfterApproval(authorizationRequest, userAuthentication, approvalResult);
             return getRedirectView(authorizationRequest, approvalResult, userAuthentication);
         }
     }
@@ -328,7 +337,6 @@ public class AuthorizationEndpoint {
     @ExceptionHandler({OpenidRequestValidationException.class})
     public View handleError(OpenidRequestValidationException ex) {
         OpenidAuthorizationRequest authorizationRequest = ex.getRequest();
-//        String uri = authorizationRequest.getRedirectUri();
         Map<String, String> error = Maps.hashMap();
         error.put("error", ex.getMessage());
         String state = authorizationRequest.getState();

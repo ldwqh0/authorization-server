@@ -1,11 +1,11 @@
 package com.xyyh.authorization.client;
 
-import com.xyyh.authorization.collect.Sets;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 import java.util.Set;
 
-import static com.xyyh.authorization.collect.Sets.*;
+import static com.xyyh.authorization.collect.Sets.hashSet;
+import static com.xyyh.authorization.collect.Sets.transform;
 
 public class BaseClientDetails implements ClientDetails {
 
@@ -13,6 +13,7 @@ public class BaseClientDetails implements ClientDetails {
 
     private final String clientId;
     private final String clientSecret;
+    private final boolean autoApproval;
     private final Set<String> scope;
     private final Set<String> registeredRedirectUris;
     private final Set<AuthorizationGrantType> authorizedGrantTypes;
@@ -20,11 +21,13 @@ public class BaseClientDetails implements ClientDetails {
     public BaseClientDetails(
         String clientId,
         String clientSecret,
+        boolean autoApproval,
         Set<String> scope,
         Set<String> registeredRedirectUris,
         Set<String> authorizedGrantTypes) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
+        this.autoApproval = autoApproval;
         this.scope = hashSet(scope);
         this.registeredRedirectUris = hashSet(registeredRedirectUris);
         this.authorizedGrantTypes = transform(authorizedGrantTypes, AuthorizationGrantType::new);
@@ -50,6 +53,10 @@ public class BaseClientDetails implements ClientDetails {
         return registeredRedirectUris;
     }
 
+    @Override
+    public boolean isAutoApproval() {
+        return autoApproval;
+    }
 
     @Override
     public int hashCode() {
