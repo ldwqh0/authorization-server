@@ -17,9 +17,9 @@ public class TestStringSplit {
 
     private static final Random random = new SecureRandom();
     private static final String RandomChars = "qwertyuiopasdfghjklzxcvbnm1234567890QWERTYUIOPASDFGHJKLZXCVBNM";
-    StringKeyGenerator accessTokenGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
+    final StringKeyGenerator accessTokenGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
 
-    BytesKeyGenerator g = KeyGenerators.secureRandom(32);
+    final BytesKeyGenerator g = KeyGenerators.secureRandom(32);
 
     @Test
     public void spiltString() {

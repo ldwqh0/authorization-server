@@ -1,7 +1,6 @@
 package com.xyyh.authorization.core;
 
 import com.xyyh.authorization.collect.CollectionUtils;
-import com.xyyh.authorization.collect.Sets;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;

@@ -16,7 +16,7 @@ public class InMemoryApprovalStoreService implements ApprovalStoreService {
 
     static String[] mergeToArray(Set<String> origin, String... add) {
         Set<String> result = merge(origin, add);
-        return result.toArray(new String[result.size()]);
+        return result.toArray(new String[0]);
     }
 
 
@@ -81,7 +81,7 @@ public class InMemoryApprovalStoreService implements ApprovalStoreService {
         /**
          * 将一个新的请求合并到现有请求中
          *
-         * @param result
+         * @param result 要合并的请求
          */
         public void merge(ApprovalResult result) {
             this.scopes = mergeToArray(result.getScopes(), this.scopes);

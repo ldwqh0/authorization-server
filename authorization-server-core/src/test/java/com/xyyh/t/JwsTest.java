@@ -19,7 +19,7 @@ import net.minidev.json.JSONObject;
 public class JwsTest {
 
     @Test
-    public void genJwt() throws KeyLengthException, JOSEException {
+    public void genJwt() throws JOSEException {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
         JSONObject json = new JSONObject();
         json.appendField("name", "adgd");
