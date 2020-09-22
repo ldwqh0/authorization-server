@@ -1,15 +1,14 @@
 package org.xyyh.authorization.core;
 
+
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
 
-public interface Oauth2AuthorizationRequest extends Serializable {
+public interface OAuth2AuthorizationRequest extends Serializable {
     Set<String> getResponseTypes();
-
-//    String getAuthorizationUri();
 
     AuthorizationGrantType getAuthorizationGrantType();
 

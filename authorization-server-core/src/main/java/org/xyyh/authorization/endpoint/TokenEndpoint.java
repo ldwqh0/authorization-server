@@ -1,13 +1,5 @@
 package org.xyyh.authorization.endpoint;
 
-import org.xyyh.authorization.client.ClientDetails;
-import org.xyyh.authorization.collect.CollectionUtils;
-import org.xyyh.authorization.collect.Maps;
-import org.xyyh.authorization.collect.Sets;
-import org.xyyh.authorization.core.*;
-import org.xyyh.authorization.exception.TokenRequestValidationException;
-import org.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
-import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,7 +12,16 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.web.bind.annotation.*;
+import org.xyyh.authorization.client.ClientDetails;
+import org.xyyh.authorization.collect.Maps;
+import org.xyyh.authorization.collect.Sets;
+import org.xyyh.authorization.core.*;
+import org.xyyh.authorization.exception.TokenRequestValidationException;
+import org.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
+import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 
+import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -34,35 +35,51 @@ import java.util.Set;
 @RequestMapping("/oauth2/token")
 public class TokenEndpoint {
 
-    private static final String SPACE = " ";
-    @Autowired
-    private OAuth2AuthorizationCodeService authorizationCodeService;
+    private final OAuth2AuthorizationCodeService authorizationCodeService;
 
-    @Autowired
-    private OAuth2AccessTokenService accessTokenService;
+    private final OAuth2AccessTokenService accessTokenService;
 
-    @Autowired(required = false)
     private AuthenticationManager userAuthenticationManager;
 
+    private final TokenGenerator tokenGenerator;
+
     @Autowired
-    private OAuth2RequestScopeValidator oAuth2RequestValidator;
+    private final OAuth2RequestScopeValidator oAuth2RequestValidator;
 
     private UserDetailsService userDetailsService;
+
+    public TokenEndpoint(OAuth2AuthorizationCodeService authorizationCodeService, OAuth2AccessTokenService accessTokenService, TokenGenerator tokenGenerator, OAuth2RequestScopeValidator oAuth2RequestValidator) {
+        this.authorizationCodeService = authorizationCodeService;
+        this.accessTokenService = accessTokenService;
+        this.tokenGenerator = tokenGenerator;
+        this.oAuth2RequestValidator = oAuth2RequestValidator;
+    }
+
+    @Autowired(required = false)
+    public void setUserAuthenticationManager(AuthenticationManager userAuthenticationManager) {
+        this.userAuthenticationManager = userAuthenticationManager;
+    }
 
     @Autowired(required = false)
     public void setUserDetailsService(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
 
-    // @GetMapping
+
+    /**
+     * 不支持 get请求获取token,返回415状态码
+     *
+     * @return
+     */
+    @GetMapping
+    @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     // 暂不支持get请求
     public Map<String, ?> getAccessToken(
         Authentication principal,
         @RequestParam("grant_type") String grantType,
         @RequestParam("code") String code,
         @RequestParam("redirect_uri") String redirectUri) {
-        return null;
-//        return postAccessToken(principal, code, redirectUri);
+        return Collections.emptyMap();
     }
 
     /**
@@ -81,9 +98,8 @@ public class TokenEndpoint {
         @RequestParam("scope") String scope) {
         // 验证grant type
         validGrantTypes(client, "password");
-
         // 验证scope
-        Set<String> scopes = Sets.hashSet(scope.split(SPACE));
+        Set<String> scopes = Sets.hashSet(scope.split("[\\s+]"));
         oAuth2RequestValidator.validateScope(scopes, client);
 
         // 认证用户
@@ -98,7 +114,9 @@ public class TokenEndpoint {
             OAuth2AccessToken accessToken = accessTokenService.save(OAuth2AccessTokenGenerator.generateAccessToken(authentication), authentication);
             // 返回token
             return OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+            // TODO 需要确定是否返回 refresh_token
         } else {
+            // TODO 这个错误信息需要修改
             throw new TokenRequestValidationException("d");
         }
     }
@@ -140,18 +158,12 @@ public class TokenEndpoint {
         }
 
         // 没有找到指定的授权码信息时报错
-        OAuth2AccessToken accessToken = accessTokenService
-            .save(OAuth2AccessTokenGenerator.generateAccessToken(authentication), authentication);
+        OAuth2AccessToken accessToken = accessTokenService.save(OAuth2AccessTokenGenerator.generateAccessToken(authentication), authentication);
         // TODO 需要处理openid
+        // TODO　需要确定是否返回 refresh_token
         return OAuth2AccessTokenUtils.converterToken2Map(accessToken);
     }
 
-    private void validGrantTypes(ClientDetails client, String grantType) {
-        Set<AuthorizationGrantType> grantTypes = client.getAuthorizedGrantTypes();
-        if (!CollectionUtils.containsAny(grantTypes, new AuthorizationGrantType(grantType))) {
-            throw new TokenRequestValidationException("unauthorized_client");
-        }
-    }
 
     /**
      * 刷新token
@@ -166,8 +178,16 @@ public class TokenEndpoint {
         @RequestParam("refresh_token") String refreshToken,
         @RequestParam("scope") String scope) {
         return null;
-        // 使用refreshToken时,需要重新加载用户的信息
+        // TODO 使用refreshToken时,需要重新加载用户的信息
+        // 返回时需要确定是否持续返回access_token
         // userDetailsService.loadUserByUsername();
+    }
+
+    @RequestMapping(params = {"grant_type=client_credentials"})
+    public Map<String, ?> postAccessToken() {
+        //TODO 客户端模式的的逻辑需要处理
+        // 该模式下不能返回refresh_token
+        return null;
     }
 
     /**
@@ -213,4 +233,12 @@ public class TokenEndpoint {
         // TODO 待实现
     }
 
+
+    private void validGrantTypes(ClientDetails client, @NotNull String grantType) {
+        Set<AuthorizationGrantType> grantTypes = client.getAuthorizedGrantTypes();
+        if (grantTypes.stream().map(AuthorizationGrantType::getValue)
+            .noneMatch(grantType::equals)) {
+            throw new TokenRequestValidationException("unauthorized_client");
+        }
+    }
 }

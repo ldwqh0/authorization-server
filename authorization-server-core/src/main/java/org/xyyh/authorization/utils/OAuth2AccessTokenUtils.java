@@ -1,9 +1,9 @@
 package org.xyyh.authorization.utils;
 
-import org.xyyh.authorization.collect.Maps;
-import org.xyyh.authorization.core.OAuth2Authentication;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.xyyh.authorization.collect.Maps;
+import org.xyyh.authorization.core.OAuth2Authentication;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -19,7 +19,7 @@ public final class OAuth2AccessTokenUtils {
 
     static final String SPACE = " ";
 
-    public static Map<String, ?> converterToken2Map(OAuth2AccessToken accessToken) {
+    public static Map<String, Object> converterToken2Map(OAuth2AccessToken accessToken) {
         long expiresIn = -1;
         Instant expiresAt = accessToken.getExpiresAt();
         if (expiresAt != null) {

@@ -5,6 +5,9 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.xyyh.authorization.client.ClientDetailsService;
 import org.xyyh.authorization.client.InMemoryClientDetailsService;
 import org.xyyh.authorization.core.*;
@@ -13,9 +16,6 @@ import org.xyyh.authorization.endpoint.JWKSetEndpoint;
 import org.xyyh.authorization.endpoint.TokenEndpoint;
 import org.xyyh.authorization.endpoint.TokenIntrospectionEndpoint;
 import org.xyyh.authorization.provider.*;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AuthorizationServerConfiguration {
@@ -33,8 +33,11 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    public TokenEndpoint tokenEndpoint() {
-        return new TokenEndpoint();
+    public TokenEndpoint tokenEndpoint(OAuth2AuthorizationCodeService authorizationCodeService,
+                                       OAuth2AccessTokenService accessTokenService,
+                                       OAuth2RequestScopeValidator oAuth2RequestValidator,
+                                       TokenGenerator tokenGenerator) {
+        return new TokenEndpoint(authorizationCodeService, accessTokenService, tokenGenerator, oAuth2RequestValidator);
     }
 
     @Bean
@@ -101,5 +104,11 @@ public class AuthorizationServerConfiguration {
     @ConditionalOnMissingBean(ApprovalStoreService.class)
     public ApprovalStoreService approvalStoreService() {
         return new InMemoryApprovalStoreService();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(TokenGenerator.class)
+    public TokenGenerator tokenGenerator() {
+        return new DefaultTokenGenerator();
     }
 }

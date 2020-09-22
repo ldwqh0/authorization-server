@@ -14,6 +14,11 @@ public interface OAuth2AccessTokenService {
      */
     OAuth2AccessToken save(OAuth2AccessToken token, OAuth2Authentication authentication);
 
+    /**
+     * 删除一个现有的accessToken
+     *
+     * @param accessToken 要删除的token值
+     */
     void delete(String accessToken);
 
     OAuth2Authentication getAuthentication(String accessToken);

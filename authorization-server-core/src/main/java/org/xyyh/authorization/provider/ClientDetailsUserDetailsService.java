@@ -1,15 +1,15 @@
 package org.xyyh.authorization.provider;
 
-import java.util.Collection;
-import java.util.Collections;
-
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
 import org.xyyh.authorization.client.ClientDetails;
 import org.xyyh.authorization.client.ClientDetailsService;
+
+import java.util.Collection;
+import java.util.Collections;
 
 public class ClientDetailsUserDetailsService implements UserDetailsService {
 
@@ -26,7 +26,7 @@ public class ClientDetailsUserDetailsService implements UserDetailsService {
 
 }
 
-class ClientUserDetails implements UserDetails {
+class ClientUserDetails implements CredentialsContainer, UserDetails {
 
     private static final long serialVersionUID = -4968552547785149722L;
     private final ClientDetails clientDetails;
@@ -74,4 +74,8 @@ class ClientUserDetails implements UserDetails {
         return true;
     }
 
+    @Override
+    public void eraseCredentials() {
+        // TODO 这里需要处理
+    }
 }

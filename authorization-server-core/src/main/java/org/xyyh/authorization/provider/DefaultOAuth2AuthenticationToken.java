@@ -1,12 +1,12 @@
 package org.xyyh.authorization.provider;
 
-import org.xyyh.authorization.core.ApprovalResult;
-import org.xyyh.authorization.core.OAuth2Authentication;
-import org.xyyh.authorization.core.Oauth2AuthorizationRequest;
 import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
+import org.xyyh.authorization.core.ApprovalResult;
+import org.xyyh.authorization.core.OAuth2Authentication;
+import org.xyyh.authorization.core.OAuth2AuthorizationRequest;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -24,7 +24,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     private final Authentication userAuthentication;
 
-    private final Oauth2AuthorizationRequest request;
+    private final OAuth2AuthorizationRequest request;
 
     @Override
     public boolean isAuthenticated() {
@@ -37,7 +37,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     }
 
     public DefaultOAuth2AuthenticationToken(ApprovalResult result,
-                                            Authentication userAuthentication, Oauth2AuthorizationRequest request) {
+                                            Authentication userAuthentication, OAuth2AuthorizationRequest request) {
         this.approvalResult = result;
         this.userAuthentication = userAuthentication;
         this.request = request;
@@ -94,7 +94,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     }
 
     @Override
-    public Oauth2AuthorizationRequest getRequest() {
+    public OAuth2AuthorizationRequest getRequest() {
         return this.request;
     }
 

@@ -1,18 +1,5 @@
 package org.xyyh.authorization.endpoint;
 
-import org.xyyh.authorization.client.ClientDetails;
-import org.xyyh.authorization.client.ClientDetailsService;
-import org.xyyh.authorization.collect.Maps;
-import org.xyyh.authorization.core.*;
-import org.xyyh.authorization.endpoint.request.OpenidAuthorizationFlow;
-import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
-import org.xyyh.authorization.exception.InvalidScopeException;
-import org.xyyh.authorization.exception.NoSuchClientException;
-import org.xyyh.authorization.exception.OpenidRequestValidationException;
-import org.xyyh.authorization.exception.UnsupportedResponseTypeException;
-import org.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
-import org.xyyh.authorization.provider.DefaultOAuth2AuthorizationCode;
-import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +17,19 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.xyyh.authorization.client.ClientDetails;
+import org.xyyh.authorization.client.ClientDetailsService;
+import org.xyyh.authorization.collect.Maps;
+import org.xyyh.authorization.core.*;
+import org.xyyh.authorization.endpoint.request.OpenidAuthorizationFlow;
+import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
+import org.xyyh.authorization.exception.InvalidScopeException;
+import org.xyyh.authorization.exception.NoSuchClientException;
+import org.xyyh.authorization.exception.OpenidRequestValidationException;
+import org.xyyh.authorization.exception.UnsupportedResponseTypeException;
+import org.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
+import org.xyyh.authorization.provider.DefaultOAuth2AuthorizationCode;
+import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
@@ -73,7 +73,6 @@ public class AuthorizationEndpoint {
      * @param sessionStatus sessionStatus
      * @return 授权页面模型和视图
      */
-
     @RequestMapping
     public ModelAndView authorize(
         HttpServletRequest request,
@@ -132,7 +131,9 @@ public class AuthorizationEndpoint {
     }
 
     /**
-     * 提交授权验证请求,并返回授权验证结果
+     * 提交授权验证请求,并返回授权验证结果视图<br>
+     *     默认的收钱
+     * 具体参见 <a href="https://tools.ietf.org/html/rfc6749#section-4.1.1">https://tools.ietf.org/html/rfc6749#section-4.1.1</a>
      *
      * @param approvalParameters 授权验证参数
      * @param model              数据模型
@@ -176,7 +177,8 @@ public class AuthorizationEndpoint {
     }
 
     /**
-     * 创建简易模式跳转请求
+     * 创建简易模式跳转请求 参考 <a href="https://tools.ietf.org/html/rfc6749#section-4.2">https://tools.ietf.org/html/rfc6749#section-4.2</a><br>
+     * 简易模式下，不能返回refresh_token
      *
      * @param request            授权请求
      * @param result             授权结果
@@ -188,7 +190,12 @@ public class AuthorizationEndpoint {
         OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(result, userAuthentication, request);
         OAuth2AccessToken accessToken = accessTokenService
             .save(OAuth2AccessTokenGenerator.generateAccessToken(authentication), authentication);
-        Map<String, ?> fragment = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+        Map<String, Object> fragment = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+        String state = request.getState();
+        if (StringUtils.isNotBlank(state)) {
+            fragment.put("state", state);
+        }
+        // 简易模式下，不能返回access_token
         return buildRedirectView(request.getRedirectUri(), null, fragment);
     }
 

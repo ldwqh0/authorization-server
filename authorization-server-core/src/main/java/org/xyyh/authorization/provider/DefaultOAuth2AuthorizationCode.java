@@ -4,6 +4,9 @@ import org.xyyh.authorization.core.OAuth2AuthorizationCode;
 
 import java.time.Instant;
 
+/**
+ * 默认的授权码
+ */
 public class DefaultOAuth2AuthorizationCode implements OAuth2AuthorizationCode {
 
     private final String value;

@@ -1,9 +1,9 @@
 package org.xyyh.authorization.endpoint.request;
 
-import org.xyyh.authorization.core.Oauth2AuthorizationRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.util.Assert;
+import org.xyyh.authorization.core.OAuth2AuthorizationRequest;
 
 import java.io.Serializable;
 import java.util.*;
@@ -11,7 +11,7 @@ import java.util.*;
 import static org.xyyh.authorization.collect.Maps.hashMap;
 import static org.xyyh.authorization.collect.Sets.hashSet;
 
-public class OpenidAuthorizationRequest implements Oauth2AuthorizationRequest, Serializable {
+public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, Serializable {
 
     private static final long serialVersionUID = 144721905123198109L;
 

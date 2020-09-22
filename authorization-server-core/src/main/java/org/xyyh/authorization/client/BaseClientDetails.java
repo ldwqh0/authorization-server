@@ -1,5 +1,6 @@
 package org.xyyh.authorization.client;
 
+import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 import java.util.Set;
@@ -7,16 +8,20 @@ import java.util.Set;
 import static org.xyyh.authorization.collect.Sets.hashSet;
 import static org.xyyh.authorization.collect.Sets.transform;
 
-public class BaseClientDetails implements ClientDetails {
+public class BaseClientDetails implements CredentialsContainer, ClientDetails {
 
     private static final long serialVersionUID = -7386163121370242465L;
 
     private final String clientId;
-    private final String clientSecret;
+    private String clientSecret;
     private final boolean autoApproval;
     private final Set<String> scope;
     private final Set<String> registeredRedirectUris;
     private final Set<AuthorizationGrantType> authorizedGrantTypes;
+
+    private final Integer accessTokenValiditySeconds;
+
+    private final Integer refreshTokenValiditySeconds;
 
     public BaseClientDetails(
         String clientId,
@@ -24,13 +29,27 @@ public class BaseClientDetails implements ClientDetails {
         boolean autoApproval,
         Set<String> scope,
         Set<String> registeredRedirectUris,
-        Set<String> authorizedGrantTypes) {
+        Set<String> authorizedGrantTypes,
+        Integer accessTokenValiditySeconds,
+        Integer refreshTokenValiditySeconds) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.autoApproval = autoApproval;
         this.scope = hashSet(scope);
         this.registeredRedirectUris = hashSet(registeredRedirectUris);
         this.authorizedGrantTypes = transform(authorizedGrantTypes, AuthorizationGrantType::new);
+        this.accessTokenValiditySeconds = accessTokenValiditySeconds;
+        this.refreshTokenValiditySeconds = refreshTokenValiditySeconds;
+    }
+
+    @Override
+    public Integer getAccessTokenValiditySeconds() {
+        return accessTokenValiditySeconds;
+    }
+
+    @Override
+    public Integer getRefreshTokenValiditySeconds() {
+        return refreshTokenValiditySeconds;
     }
 
     @Override
@@ -106,4 +125,8 @@ public class BaseClientDetails implements ClientDetails {
         return this.authorizedGrantTypes;
     }
 
+    @Override
+    public void eraseCredentials() {
+        this.clientSecret = null;
+    }
 }
