@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import org.xyyh.authorization.core.OAuth2AccessTokenService;
+import org.xyyh.authorization.core.OAuth2AccessTokenStorageService;
 import org.xyyh.authorization.core.OAuth2Authentication;
 import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 
@@ -26,7 +26,7 @@ import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 public class TokenIntrospectionEndpoint {
 
     @Autowired
-    private OAuth2AccessTokenService accessTokenService;
+    private OAuth2AccessTokenStorageService accessTokenService;
 
     /**
      * 这个接口仅对资源服务器开放，不应该被外部服务器，或者client访问到

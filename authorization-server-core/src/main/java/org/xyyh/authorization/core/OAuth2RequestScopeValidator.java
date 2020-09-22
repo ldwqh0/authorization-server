@@ -1,8 +1,6 @@
 package org.xyyh.authorization.core;
 
 import org.xyyh.authorization.client.ClientDetails;
-import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
-import org.xyyh.authorization.exception.InvalidScopeException;
 
 import java.util.Set;
 
@@ -10,12 +8,6 @@ import java.util.Set;
  * OAuth2请求验证器，用户验证请求的正确性
  */
 public interface OAuth2RequestScopeValidator {
-
-    /**
-     * 验证授权请求的正确型
-     */
-    void validateScope(OpenidAuthorizationRequest authorizationRequest, ClientDetails client)
-            throws InvalidScopeException;
 
     /**
      * 验证token请求的正确性

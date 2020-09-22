@@ -1,11 +1,12 @@
 package org.xyyh.authorization.core;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 /**
  * 授权码
  */
-public interface OAuth2AuthorizationCode {
+public interface OAuth2AuthorizationCode extends Serializable {
     /**
      * 获取token值
      */

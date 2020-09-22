@@ -2,6 +2,7 @@ package org.xyyh.authorization.core;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
+import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 
 import java.util.Set;
 
@@ -21,10 +22,10 @@ public interface OAuth2Authentication extends Authentication, CredentialsContain
     Set<String> getScopes();
 
     /**
-     * the {@link org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest}
+     * the {@link  OpenidAuthorizationRequest}
      *
-     * @see org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest
+     * @see OpenidAuthorizationRequest
      */
-    OAuth2AuthorizationRequest getRequest();
+    OpenidAuthorizationRequest getRequest();
 
 }

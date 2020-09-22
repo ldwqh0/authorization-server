@@ -22,6 +22,7 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
     private final Integer accessTokenValiditySeconds;
 
     private final Integer refreshTokenValiditySeconds;
+    private final boolean requirePkce;
 
     public BaseClientDetails(
         String clientId,
@@ -31,7 +32,8 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
         Set<String> registeredRedirectUris,
         Set<String> authorizedGrantTypes,
         Integer accessTokenValiditySeconds,
-        Integer refreshTokenValiditySeconds) {
+        Integer refreshTokenValiditySeconds,
+        boolean requirePkce) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.autoApproval = autoApproval;
@@ -40,6 +42,7 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
         this.authorizedGrantTypes = transform(authorizedGrantTypes, AuthorizationGrantType::new);
         this.accessTokenValiditySeconds = accessTokenValiditySeconds;
         this.refreshTokenValiditySeconds = refreshTokenValiditySeconds;
+        this.requirePkce = requirePkce;
     }
 
     @Override
@@ -75,6 +78,10 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
     @Override
     public boolean isAutoApproval() {
         return autoApproval;
+    }
+
+    public boolean isRequirePkce() {
+        return requirePkce;
     }
 
     @Override

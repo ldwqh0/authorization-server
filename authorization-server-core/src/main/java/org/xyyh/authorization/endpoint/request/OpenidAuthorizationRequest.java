@@ -3,7 +3,6 @@ package org.xyyh.authorization.endpoint.request;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.util.Assert;
-import org.xyyh.authorization.core.OAuth2AuthorizationRequest;
 
 import java.io.Serializable;
 import java.util.*;
@@ -11,7 +10,15 @@ import java.util.*;
 import static org.xyyh.authorization.collect.Maps.hashMap;
 import static org.xyyh.authorization.collect.Sets.hashSet;
 
-public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, Serializable {
+/**
+ * 一个可以包含openid请求参数的请求封装<br>
+ * openid 和oauth2 请求的区别在于，openid请求的 response_type 参数是以空格分割的多个参数
+ * 也就是是 openid 的 Hybrid Flow
+ *
+ * @see <a target="_blank" href="https://openid.net/specs/openid-connect-core-1_0.html#HybridFlowAuth">Authentication using the Hybrid Flow</a>
+ * @see org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest
+ */
+public class OpenidAuthorizationRequest implements Serializable {
 
     private static final long serialVersionUID = 144721905123198109L;
 
@@ -26,7 +33,7 @@ public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, S
     private final String redirectUri;
     private final Set<String> scopes;
     private final String state;
-    private final Map<String, Object> additionalParameters;
+    private final Map<String, String> additionalParameters;
     private final String authorizationRequestUri;
     private final Map<String, Object> attributes;
 
@@ -36,7 +43,7 @@ public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, S
                                        String redirectUri,
                                        Set<String> scopes,
                                        String state,
-                                       Map<String, Object> additionalParameters,
+                                       Map<String, String> additionalParameters,
                                        String authorizationRequestUri,
                                        Map<String, Object> attributes) {
         this.responseTypes = hashSet(responseTypes);
@@ -96,7 +103,7 @@ public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, S
         return state;
     }
 
-    public Map<String, Object> getAdditionalParameters() {
+    public Map<String, String> getAdditionalParameters() {
         return Collections.unmodifiableMap(additionalParameters);
     }
 
@@ -113,11 +120,11 @@ public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, S
     }
 
     public static class Builder {
-        private static final String SPACE = " ";
+        private static final String SPACE_REGEX = "[\\s+]";
         private String redirectUri;
         private String state;
         private String authorizationRequestUri;
-        private Map<String, Object> additionalParameters;
+        private Map<String, String> additionalParameters;
         //        private String authorizationUri;
         private AuthorizationGrantType authorizationGrantType;
         private String clientId;
@@ -141,7 +148,9 @@ public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, S
         }
 
         public Builder scopes(String scopes) {
-            getScopes().addAll(Arrays.asList(StringUtils.split(scopes, SPACE)));
+            if (StringUtils.isNotBlank(scopes)) {
+                getScopes().addAll(Arrays.asList(scopes.split(SPACE_REGEX)));
+            }
             return this;
         }
 
@@ -150,12 +159,12 @@ public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, S
             return this;
         }
 
-        public Builder additionalParameters(Map<String, Object> additionalParameters) {
+        public Builder additionalParameters(Map<String, String> additionalParameters) {
             getAdditionalParameters().putAll(additionalParameters);
             return this;
         }
 
-        public Builder additionalParameter(String key, Object value) {
+        public Builder additionalParameter(String key, String value) {
             getAdditionalParameters().put(key, value);
             return this;
         }
@@ -185,7 +194,7 @@ public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, S
         public Builder responseType(String responseType) {
             if (StringUtils.isNotBlank(responseType)) {
                 Set<String> responseTypes = getResponseTypes();
-                String[] responseTypeArray = StringUtils.split(responseType, " ");
+                String[] responseTypeArray = responseType.split(SPACE_REGEX);
                 responseTypes.addAll(Arrays.asList(responseTypeArray));
             }
             return this;
@@ -211,7 +220,7 @@ public class OpenidAuthorizationRequest implements OAuth2AuthorizationRequest, S
             return this;
         }
 
-        private Map<String, Object> getAdditionalParameters() {
+        private Map<String, String> getAdditionalParameters() {
             if (this.additionalParameters == null) {
                 this.additionalParameters = new HashMap<>();
             }

@@ -6,7 +6,7 @@ import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
 import org.xyyh.authorization.core.ApprovalResult;
 import org.xyyh.authorization.core.OAuth2Authentication;
-import org.xyyh.authorization.core.OAuth2AuthorizationRequest;
+import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -24,7 +24,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     private final Authentication userAuthentication;
 
-    private final OAuth2AuthorizationRequest request;
+    private final OpenidAuthorizationRequest request;
 
     @Override
     public boolean isAuthenticated() {
@@ -37,7 +37,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     }
 
     public DefaultOAuth2AuthenticationToken(ApprovalResult result,
-                                            Authentication userAuthentication, OAuth2AuthorizationRequest request) {
+                                            Authentication userAuthentication, OpenidAuthorizationRequest request) {
         this.approvalResult = result;
         this.userAuthentication = userAuthentication;
         this.request = request;
@@ -94,7 +94,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     }
 
     @Override
-    public OAuth2AuthorizationRequest getRequest() {
+    public OpenidAuthorizationRequest getRequest() {
         return this.request;
     }
 

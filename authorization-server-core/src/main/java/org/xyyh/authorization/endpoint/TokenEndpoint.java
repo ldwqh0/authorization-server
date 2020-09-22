@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.web.bind.annotation.*;
 import org.xyyh.authorization.client.ClientDetails;
 import org.xyyh.authorization.collect.Maps;
@@ -26,6 +27,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.xyyh.authorization.core.PkceValidator.CODE_CHALLENGE_METHOD_PLAIN;
+
 /**
  * oauth2获取token的核心协议
  *
@@ -35,9 +38,11 @@ import java.util.Set;
 @RequestMapping("/oauth2/token")
 public class TokenEndpoint {
 
-    private final OAuth2AuthorizationCodeService authorizationCodeService;
+    private final OAuth2AuthorizationCodeStorageService authorizationCodeService;
 
-    private final OAuth2AccessTokenService accessTokenService;
+    private final OAuth2AccessTokenStorageService accessTokenService;
+
+    private final OAuth2RefreshTokenStorageService refreshTokenStorageService;
 
     private AuthenticationManager userAuthenticationManager;
 
@@ -48,11 +53,15 @@ public class TokenEndpoint {
 
     private UserDetailsService userDetailsService;
 
-    public TokenEndpoint(OAuth2AuthorizationCodeService authorizationCodeService, OAuth2AccessTokenService accessTokenService, TokenGenerator tokenGenerator, OAuth2RequestScopeValidator oAuth2RequestValidator) {
+    private final PkceValidator pkceValidator;
+
+    public TokenEndpoint(OAuth2AuthorizationCodeStorageService authorizationCodeService, OAuth2AccessTokenStorageService accessTokenService, OAuth2RefreshTokenStorageService refreshTokenStorageService, TokenGenerator tokenGenerator, OAuth2RequestScopeValidator oAuth2RequestValidator, PkceValidator pkceValidator) {
         this.authorizationCodeService = authorizationCodeService;
         this.accessTokenService = accessTokenService;
+        this.refreshTokenStorageService = refreshTokenStorageService;
         this.tokenGenerator = tokenGenerator;
         this.oAuth2RequestValidator = oAuth2RequestValidator;
+        this.pkceValidator = pkceValidator;
     }
 
     @Autowired(required = false)
@@ -101,7 +110,6 @@ public class TokenEndpoint {
         // 验证scope
         Set<String> scopes = Sets.hashSet(scope.split("[\\s+]"));
         oAuth2RequestValidator.validateScope(scopes, client);
-
         // 认证用户
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, password);
         Authentication user = this.userAuthenticationManager.authenticate(token);
@@ -111,15 +119,17 @@ public class TokenEndpoint {
             ApprovalResult approvalResult = ApprovalResult.of(scopes);
             OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(approvalResult, user, null);
             // 生成并保存token
-            OAuth2AccessToken accessToken = accessTokenService.save(OAuth2AccessTokenGenerator.generateAccessToken(authentication), authentication);
+            OAuth2AccessToken accessToken = accessTokenService.save(tokenGenerator.generateAccessToken(client, authentication), authentication);
             // 返回token
-            return OAuth2AccessTokenUtils.converterToken2Map(accessToken);
-            // TODO 需要确定是否返回 refresh_token
+            Map<String, Object> result = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+            return addRefreshToken(result, client, authentication);
+            // return result;
         } else {
             // TODO 这个错误信息需要修改
             throw new TokenRequestValidationException("d");
         }
     }
+
 
     /**
      * 授权码模式的授权请求
@@ -136,13 +146,15 @@ public class TokenEndpoint {
     public Map<String, ?> postAccessToken(
         @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
         @RequestParam("code") String code,
-        @RequestParam("redirect_uri") String redirectUri) {
+        @RequestParam("redirect_uri") String redirectUri,
+        Map<String, String> requestParams) {
         // 使用http basic来验证client，通过AuthorizationServerSecurityConfiguration实现
         // 验证grant type
         validGrantTypes(client, "authorization_code");
         // 验证code
         OAuth2Authentication authentication = authorizationCodeService.consume(code);
         // 首先验证code是否存在
+        // 没有找到指定的授权码信息时报错
         if (Objects.isNull(authentication)) {
             throw new TokenRequestValidationException("invalid_grant");
         }
@@ -150,18 +162,22 @@ public class TokenEndpoint {
         if (!StringUtils.equals(client.getClientId(), authentication.getClientId())) {
             throw new TokenRequestValidationException("invalid_grant");
         }
-
         // 颁发token时，验证RedirectUri是否匹配
         // 颁发token时，redirect uri 必须和请求的redirect uri 一致
         if (!StringUtils.equals(redirectUri, authentication.getRequest().getRedirectUri())) {
             throw new TokenRequestValidationException("invalid_grant");
         }
-
-        // 没有找到指定的授权码信息时报错
-        OAuth2AccessToken accessToken = accessTokenService.save(OAuth2AccessTokenGenerator.generateAccessToken(authentication), authentication);
+//        authentication.getRequest().getAdditionalParameters()
+        Map<String, String> additionalParameters = authentication.getRequest().getAdditionalParameters();
+        validPkce(additionalParameters, requestParams);
+        // TODO 根据请求进行pkce校验
+        // 签发token
+        OAuth2AccessToken accessToken = accessTokenService.save(tokenGenerator.generateAccessToken(client, authentication), authentication);
         // TODO 需要处理openid
         // TODO　需要确定是否返回 refresh_token
-        return OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+        Map<String, Object> response = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+        addRefreshToken(response, client, authentication);
+        return response;
     }
 
 
@@ -185,7 +201,7 @@ public class TokenEndpoint {
 
     @RequestMapping(params = {"grant_type=client_credentials"})
     public Map<String, ?> postAccessToken() {
-        //TODO 客户端模式的的逻辑需要处理
+        // TODO 客户端模式的的逻辑需要处理
         // 该模式下不能返回refresh_token
         return null;
     }
@@ -196,10 +212,11 @@ public class TokenEndpoint {
      * @return 错误响应
      */
     @PostMapping
-    public ResponseEntity<Map<String, ?>> otherwise() {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, ?> otherwise() {
         Map<String, Object> response = Maps.hashMap();
         response.put("error", "unsupported_grant_type");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return response;
     }
 
     /**
@@ -233,6 +250,30 @@ public class TokenEndpoint {
         // TODO 待实现
     }
 
+    /**
+     * 对请求进行pkce校验
+     *
+     * @param storeParams 储存的pkce参数
+     * @see <a target="_blank" href="https://tools.ietf.org/html/rfc7636">Proof Key for Code Exchange by OAuth Public Clients</a>
+     */
+    private void validPkce(Map<String, String> storeParams, Map<String, String> requestParams) {
+        String codeChallenge = storeParams.get("code_challenge");
+        if (StringUtils.isNotBlank(codeChallenge)) {
+            String codeChallengeMethod = storeParams.getOrDefault("code_challenge_method", CODE_CHALLENGE_METHOD_PLAIN);
+            String codeVerifier = requestParams.get("code_verifier");
+            pkceValidator.validate(codeChallenge, codeVerifier, codeChallengeMethod);
+        }
+    }
+
+    private Map<String, ?> addRefreshToken(Map<String, Object> result, ClientDetails client, OAuth2Authentication userAuthentication) {
+        if (isSupportRefreshToken(client)) {
+            OAuth2RefreshToken refreshToken = tokenGenerator.generateRefreshToken(client);
+            refreshTokenStorageService.save(refreshToken, userAuthentication);
+            result.put("refresh_token", refreshToken.getTokenValue());
+        }
+        return result;
+    }
+
 
     private void validGrantTypes(ClientDetails client, @NotNull String grantType) {
         Set<AuthorizationGrantType> grantTypes = client.getAuthorizedGrantTypes();
@@ -240,5 +281,15 @@ public class TokenEndpoint {
             .noneMatch(grantType::equals)) {
             throw new TokenRequestValidationException("unauthorized_client");
         }
+    }
+
+    /**
+     * 验证请求是否支持refresh_token
+     *
+     * @param client
+     * @return
+     */
+    private boolean isSupportRefreshToken(ClientDetails client) {
+        return this.userAuthenticationManager != null && client.getAuthorizedGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN);
     }
 }

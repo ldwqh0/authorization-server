@@ -1,7 +1,7 @@
 package org.xyyh.authorization.provider;
 
 import org.xyyh.authorization.core.ApprovalResult;
-import org.xyyh.authorization.core.ApprovalStoreService;
+import org.xyyh.authorization.core.ApprovalStorageService;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.xyyh.authorization.collect.Sets.hashSet;
 import static org.xyyh.authorization.collect.Sets.merge;
 
-public class InMemoryApprovalStoreService implements ApprovalStoreService {
+public class InMemoryApprovalStorageService implements ApprovalStorageService {
     private final Map<UnionKey, ApprovalResultModel> storage = new ConcurrentHashMap<>();
 
     static String[] mergeToArray(Set<String> origin, String... add) {

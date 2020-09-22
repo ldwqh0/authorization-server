@@ -1,9 +1,8 @@
 package org.xyyh.authorization.core;
 
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 
-public interface OAuth2AccessTokenService {
+public interface OAuth2AccessTokenStorageService {
 
     /**
      * 保存一个Token,在某种情况下，token value的值可能发生变化，比如使用jwt
@@ -25,6 +24,4 @@ public interface OAuth2AccessTokenService {
 
     OAuth2AccessToken getAccessToken(String accessToken);
 
-    // TODO 可能定义不太准确
-    OAuth2RefreshToken createRefreshToken(OAuth2AccessToken accessToken);
 }

@@ -8,12 +8,13 @@ import java.time.Instant;
  * 默认的授权码
  */
 public class DefaultOAuth2AuthorizationCode implements OAuth2AuthorizationCode {
-
+    private static final long serialVersionUID = -6847663525050656084L;
     private final String value;
 
     private final Instant issuedAt;
 
     private final Instant expiresAt;
+
 
     public DefaultOAuth2AuthorizationCode(String value, Instant issuedAt, Instant expiresAt) {
         this.value = value;
@@ -35,4 +36,5 @@ public class DefaultOAuth2AuthorizationCode implements OAuth2AuthorizationCode {
     public Instant getExpiresAt() {
         return expiresAt;
     }
+
 }

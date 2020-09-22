@@ -46,4 +46,11 @@ public interface ClientDetails extends Serializable {
 
     Set<String> getRegisteredRedirectUris();
 
+    /**
+     * 确定某个client是否需要pkce验证
+     *
+     * @return
+     */
+    boolean isRequirePkce();
+
 }

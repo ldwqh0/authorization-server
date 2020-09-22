@@ -1,14 +1,13 @@
 package org.xyyh.authorization.provider;
 
-import org.xyyh.authorization.core.OAuth2AccessTokenService;
-import org.xyyh.authorization.core.OAuth2Authentication;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.OAuth2RefreshToken;
+import org.xyyh.authorization.core.OAuth2AccessTokenStorageService;
+import org.xyyh.authorization.core.OAuth2Authentication;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class InMemoryOAuth2AccessTokenService implements OAuth2AccessTokenService {
+public class InMemoryAccessTokenStorageService implements OAuth2AccessTokenStorageService {
 
     private final Map<String, OAuth2Authentication> authenticationRepository = new ConcurrentHashMap<>();
 
@@ -36,12 +35,6 @@ public class InMemoryOAuth2AccessTokenService implements OAuth2AccessTokenServic
     @Override
     public OAuth2AccessToken getAccessToken(String accessToken) {
         return this.tokenRepository.get(accessToken);
-    }
-
-    @Override
-    public OAuth2RefreshToken createRefreshToken(OAuth2AccessToken accessToken) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
 }

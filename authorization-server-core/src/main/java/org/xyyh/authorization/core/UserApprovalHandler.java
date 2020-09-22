@@ -1,7 +1,7 @@
 package org.xyyh.authorization.core;
 
-import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import org.springframework.security.core.Authentication;
+import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 
 import java.util.Map;
 
