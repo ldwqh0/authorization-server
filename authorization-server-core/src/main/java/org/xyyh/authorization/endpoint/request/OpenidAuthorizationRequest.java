@@ -2,10 +2,13 @@ package org.xyyh.authorization.endpoint.request;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.Assert;
+import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.xyyh.authorization.collect.Maps.hashMap;
 import static org.xyyh.authorization.collect.Sets.hashSet;
@@ -21,6 +24,8 @@ import static org.xyyh.authorization.collect.Sets.hashSet;
 public class OpenidAuthorizationRequest implements Serializable {
 
     private static final long serialVersionUID = 144721905123198109L;
+
+    private static final String SPACE_REGEX = "[\\s+]";
 
     public static final String RESPONSE_TYPE_CODE = "code";
     public static final String RESPONSE_TYPE_ID_TOKEN = "id_token";
@@ -58,13 +63,11 @@ public class OpenidAuthorizationRequest implements Serializable {
         this.attributes = hashMap(attributes);
     }
 
+
     public Set<String> getResponseTypes() {
         return Collections.unmodifiableSet(responseTypes);
     }
 
-//    public String getAuthorizationUri() {
-//        return authorizationUri;
-//    }
 
     public AuthorizationGrantType getAuthorizationGrantType() {
         return authorizationGrantType;
@@ -115,154 +118,38 @@ public class OpenidAuthorizationRequest implements Serializable {
         return Collections.unmodifiableMap(attributes);
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private static final String SPACE_REGEX = "[\\s+]";
-        private String redirectUri;
-        private String state;
-        private String authorizationRequestUri;
-        private Map<String, String> additionalParameters;
-        //        private String authorizationUri;
-        private AuthorizationGrantType authorizationGrantType;
-        private String clientId;
-        private Set<String> scopes;
-        private Map<String, Object> attributes;
-        private Set<String> responseTypes;
-
-        private Builder() {
-        }
-
-        public Builder redirectUri(String redirectUri) {
-            this.redirectUri = redirectUri;
-            return this;
-        }
-
-        public Builder scopes(Collection<String> scopes) {
-            for (String scope : scopes) {
-                scopes(scope);
-            }
-            return this;
-        }
-
-        public Builder scopes(String scopes) {
-            if (StringUtils.isNotBlank(scopes)) {
-                getScopes().addAll(Arrays.asList(scopes.split(SPACE_REGEX)));
-            }
-            return this;
-        }
-
-        public Builder state(String state) {
-            this.state = state;
-            return this;
-        }
-
-        public Builder additionalParameters(Map<String, String> additionalParameters) {
-            getAdditionalParameters().putAll(additionalParameters);
-            return this;
-        }
-
-        public Builder additionalParameter(String key, String value) {
-            getAdditionalParameters().put(key, value);
-            return this;
-        }
-
-        public Builder authorizationRequestUri(String authorizationRequestUri) {
-            this.authorizationRequestUri = authorizationRequestUri;
-            return this;
-        }
-
-        public Builder attributes(Map<String, Object> attributes) {
-            getAttributes().putAll(attributes);
-            return this;
-        }
-
-        public Builder attribute(String key, String value) {
-            getAttributes().put(key, value);
-            return this;
-        }
-
-        public Builder responseType(Collection<String> responseTypes) {
-            for (String type : responseTypes) {
-                responseType(type);
-            }
-            return this;
-        }
-
-        public Builder responseType(String responseType) {
-            if (StringUtils.isNotBlank(responseType)) {
-                Set<String> responseTypes = getResponseTypes();
-                String[] responseTypeArray = responseType.split(SPACE_REGEX);
-                responseTypes.addAll(Arrays.asList(responseTypeArray));
-            }
-            return this;
-        }
-
-//        public Builder authorizationUri(String authorizationUri) {
-//            this.authorizationUri = authorizationUri;
-//            return this;
-//        }
-
-        public Builder authorizationGrantType(AuthorizationGrantType authorizationGrantType) {
-            this.authorizationGrantType = authorizationGrantType;
-            return this;
-        }
-
-        public Builder authorizationGrantType(String authorizationGrantType) {
-            this.authorizationGrantType = new AuthorizationGrantType(authorizationGrantType);
-            return this;
-        }
-
-        public Builder clientId(String clientId) {
-            this.clientId = clientId;
-            return this;
-        }
-
-        private Map<String, String> getAdditionalParameters() {
-            if (this.additionalParameters == null) {
-                this.additionalParameters = new HashMap<>();
-            }
-            return this.additionalParameters;
-        }
-
-        private Map<String, Object> getAttributes() {
-            if (this.attributes == null) {
-                this.attributes = new HashMap<>();
-            }
-            return this.attributes;
-        }
-
-        private Set<String> getScopes() {
-            if (this.scopes == null) {
-                this.scopes = new HashSet<>();
-            }
-            return this.scopes;
-        }
-
-        private Set<String> getResponseTypes() {
-            if (this.responseTypes == null) {
-                this.responseTypes = new HashSet<>();
-            }
-            return this.responseTypes;
-        }
-
-        public OpenidAuthorizationRequest build() {
-            Set<String> responseTypes = this.responseTypes;
-            // 判断responseType,并判断flow
-            Assert.notEmpty(responseTypes, "The response type can not be empty!");
-            return new OpenidAuthorizationRequest(
-                this.responseTypes,
-                this.authorizationGrantType,
-                this.clientId,
-                this.redirectUri,
-                this.scopes,
-                this.state,
-                this.additionalParameters,
-                this.authorizationRequestUri,
-                this.attributes
-            );
-        }
+    /**
+     * 根据传入参数，创建授权请求信息
+     *
+     * @param uri        请求 URI
+     * @param parameters 其它请求参数
+     * @return 授权请求
+     */
+    public static OpenidAuthorizationRequest of(String uri, MultiValueMap<String, String> parameters) {
+        Map<String, String> additionalParameters = new HashMap<>();
+        parameters.entrySet().stream()
+            .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
+                !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
+                !e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI) &&
+                !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
+                !e.getKey().equals(OAuth2ParameterNames.STATE))
+            .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
+        Set<String> scopes = parameters.get(OAuth2ParameterNames.SCOPE)
+            .stream().flatMap(v -> Arrays.stream(v.split(SPACE_REGEX)))
+            .collect(Collectors.toSet());
+        Set<String> responseTypes = parameters.get(OAuth2ParameterNames.RESPONSE_TYPE)
+            .stream().flatMap(v -> Arrays.stream(v.split(SPACE_REGEX)))
+            .collect(Collectors.toSet());
+        return new OpenidAuthorizationRequest(
+            responseTypes,
+            null,
+            parameters.getFirst(OAuth2ParameterNames.CLIENT_ID),
+            parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI),
+            scopes,
+            parameters.getFirst(OAuth2ParameterNames.STATE),
+            additionalParameters,
+            uri,
+            Collections.emptyMap()
+        );
     }
 }

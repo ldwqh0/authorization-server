@@ -1,10 +1,9 @@
 package org.xyyh.authorization.provider;
 
+import org.springframework.security.core.Authentication;
 import org.xyyh.authorization.core.ApprovalResult;
 import org.xyyh.authorization.core.ApprovalStorageService;
-import org.xyyh.authorization.core.UserApprovalHandler;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
-import org.springframework.security.core.Authentication;
 
 import java.time.ZonedDateTime;
 import java.util.Optional;
@@ -13,7 +12,7 @@ import java.util.Set;
 /**
  * 可以保存用户授权接口的用户授权处理器
  */
-public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler implements UserApprovalHandler {
+public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler {
 
     private final ApprovalStorageService approvalStoreService;
 

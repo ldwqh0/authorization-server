@@ -1,5 +1,7 @@
 package org.xyyh.authorization.core;
 
+import org.xyyh.authorization.exception.UnRegisteredRedirectUriException;
+
 import java.util.Set;
 
 @FunctionalInterface
@@ -12,5 +14,5 @@ public interface OAuth2RedirectUriValidator {
      * @param registeredUris 注册的请求uri
      * @return 验证成功返回true, 验证失败返回false
      */
-    boolean validate(String requestUri, Set<String> registeredUris);
+    void validate(String requestUri, Set<String> registeredUris) throws UnRegisteredRedirectUriException;
 }

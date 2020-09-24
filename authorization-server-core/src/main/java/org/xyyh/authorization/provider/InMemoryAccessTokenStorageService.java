@@ -1,13 +1,14 @@
 package org.xyyh.authorization.provider;
 
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.xyyh.authorization.core.OAuth2AccessTokenStorageService;
+import org.xyyh.authorization.core.OAuth2AccessTokenStore;
 import org.xyyh.authorization.core.OAuth2Authentication;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class InMemoryAccessTokenStorageService implements OAuth2AccessTokenStorageService {
+public class InMemoryAccessTokenStorageService implements OAuth2AccessTokenStore {
 
     private final Map<String, OAuth2Authentication> authenticationRepository = new ConcurrentHashMap<>();
 
@@ -28,13 +29,19 @@ public class InMemoryAccessTokenStorageService implements OAuth2AccessTokenStora
     }
 
     @Override
-    public OAuth2Authentication getAuthentication(String accessToken) {
-        return this.authenticationRepository.get(accessToken);
+    public Optional<OAuth2Authentication> getAuthentication(String accessToken) {
+        return Optional.ofNullable(this.authenticationRepository.get(accessToken));
     }
 
     @Override
-    public OAuth2AccessToken getAccessToken(String accessToken) {
-        return this.tokenRepository.get(accessToken);
+    public Optional<OAuth2AccessToken> getAccessToken(String accessToken) {
+        return Optional.ofNullable(this.tokenRepository.get(accessToken));
+    }
+
+    @Override
+    public Optional<OAuth2AccessToken> getAccessToken(OAuth2Authentication authentication) {
+        // TODO 这里待处理
+        return null;
     }
 
 }

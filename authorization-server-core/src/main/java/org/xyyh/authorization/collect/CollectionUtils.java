@@ -1,7 +1,6 @@
 package org.xyyh.authorization.collect;
 
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 public final class CollectionUtils {
     private CollectionUtils() {
@@ -42,4 +41,31 @@ public final class CollectionUtils {
         return !isEmpty(collection);
     }
 
+    public static boolean containsAll(final Collection<?> coll1, final Collection<?> coll2) {
+        if (coll2.isEmpty()) {
+            return true;
+        }
+        final Iterator<?> it = coll1.iterator();
+        final Set<Object> elementsAlreadySeen = new HashSet<>();
+        for (final Object nextElement : coll2) {
+            if (elementsAlreadySeen.contains(nextElement)) {
+                continue;
+            }
+
+            boolean foundCurrentElement = false;
+            while (it.hasNext()) {
+                final Object p = it.next();
+                elementsAlreadySeen.add(p);
+                if (Objects.equals(nextElement, p)) {
+                    foundCurrentElement = true;
+                    break;
+                }
+            }
+
+            if (!foundCurrentElement) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

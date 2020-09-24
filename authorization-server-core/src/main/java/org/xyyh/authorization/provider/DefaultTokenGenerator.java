@@ -34,13 +34,12 @@ class DefaultTokenGenerator implements TokenGenerator {
     }
 
     @Override
-    public OAuth2AccessToken generateAccessToken(ClientDetails client, OAuth2Authentication oAuth2Authentication) {
+    public OAuth2AccessToken generateAccessToken(Set<String> scopes, Integer validitySeconds) {
         Instant issuedAt = Instant.now();
-        Integer accessTokenValiditySeconds = Optional.ofNullable(client.getAccessTokenValiditySeconds()).orElse(defaultAccessTokenValiditySeconds);
+        Integer accessTokenValiditySeconds = Optional.ofNullable(validitySeconds).orElse(defaultAccessTokenValiditySeconds);
         Instant expiresAt = issuedAt.plus(accessTokenValiditySeconds, ChronoUnit.SECONDS);
         String tokenValue = stringGenerator.generateKey();
-        Set<String> scope = oAuth2Authentication.getScopes();
-        return new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, tokenValue, issuedAt, expiresAt, scope);
+        return new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, tokenValue, issuedAt, expiresAt, scopes);
     }
 
 

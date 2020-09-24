@@ -2,7 +2,9 @@ package org.xyyh.authorization.core;
 
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 
-public interface OAuth2AccessTokenStorageService {
+import java.util.Optional;
+
+public interface OAuth2AccessTokenStore {
 
     /**
      * 保存一个Token,在某种情况下，token value的值可能发生变化，比如使用jwt
@@ -20,8 +22,10 @@ public interface OAuth2AccessTokenStorageService {
      */
     void delete(String accessToken);
 
-    OAuth2Authentication getAuthentication(String accessToken);
+    Optional<OAuth2Authentication> getAuthentication(String accessToken);
 
-    OAuth2AccessToken getAccessToken(String accessToken);
+    Optional<OAuth2AccessToken> getAccessToken(String accessToken);
+
+    Optional<OAuth2AccessToken> getAccessToken(OAuth2Authentication authentication);
 
 }

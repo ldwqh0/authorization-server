@@ -11,7 +11,7 @@ public class InMemoryClientDetailsService implements ClientDetailsService {
     private final Map<String, ClientDetails> clients = new ConcurrentHashMap<>();
 
     @Override
-    public ClientDetails loadClientByClientId(String clientId) {
+    public ClientDetails loadClientByClientId(String clientId) throws NoSuchClientException {
         ClientDetails details = clients.get(clientId);
         if (details == null) {
             throw new NoSuchClientException("No client with requested id: " + clientId);

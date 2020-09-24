@@ -40,7 +40,7 @@ public interface ClientDetails extends Serializable {
     /**
      * 应用的scope
      */
-    Set<String> getScope();
+    Set<String> getScopes();
 
     Set<AuthorizationGrantType> getAuthorizedGrantTypes();
 

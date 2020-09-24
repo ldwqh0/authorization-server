@@ -4,6 +4,7 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
+import org.xyyh.authorization.client.ClientDetails;
 import org.xyyh.authorization.core.ApprovalResult;
 import org.xyyh.authorization.core.OAuth2Authentication;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
@@ -19,6 +20,8 @@ import java.util.Set;
  */
 public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     private static final long serialVersionUID = -6827330735137748398L;
+
+    private final ClientDetails client;
 
     private final ApprovalResult approvalResult;
 
@@ -36,8 +39,19 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
         return Objects.isNull(userAuthentication);
     }
 
-    public DefaultOAuth2AuthenticationToken(ApprovalResult result,
-                                            Authentication userAuthentication, OpenidAuthorizationRequest request) {
+    /**
+     * 使用指定的信息构建一个 {@link OAuth2Authentication}
+     *
+     * @param request            授权请求
+     * @param result             授权结果
+     * @param client             client信息
+     * @param userAuthentication 用户信息
+     */
+    public DefaultOAuth2AuthenticationToken(OpenidAuthorizationRequest request,
+                                            ApprovalResult result,
+                                            ClientDetails client,
+                                            Authentication userAuthentication) {
+        this.client = client;
         this.approvalResult = result;
         this.userAuthentication = userAuthentication;
         this.request = request;
@@ -58,7 +72,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public Object getPrincipal() {
-        return this.userAuthentication == null ? this.request.getClientId()
+        return this.userAuthentication == null ? this.client
             : this.userAuthentication.getPrincipal();
     }
 
@@ -75,7 +89,7 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
 
     @Override
     public Object getDetails() {
-        return Objects.isNull(this.userAuthentication) ? this.approvalResult : this.userAuthentication;
+        return Objects.isNull(this.userAuthentication) ? this.approvalResult : this.userAuthentication.getDetails();
     }
 
     @Override
@@ -84,8 +98,8 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     }
 
     @Override
-    public String getClientId() {
-        return request.getClientId();
+    public ClientDetails getClient() {
+        return client;
     }
 
     @Override
@@ -105,6 +119,4 @@ public class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
             ((CredentialsContainer) this.userAuthentication).eraseCredentials();
         }
     }
-
-
 }

@@ -53,7 +53,7 @@ public final class OAuth2AccessTokenUtils {
         } else {
             response.put(ACTIVE, Boolean.TRUE);
             response.put(SCOPE, StringUtils.join(token.getScopes(), SPACE));
-            response.put(CLIENT_ID, authentication.getClientId());
+            response.put(CLIENT_ID, authentication.getClient().getClientId());
             response.put(USERNAME, authentication.getName());
             // 目前只支持Bearer token
             response.put(TOKEN_TYPE, "Bearer");

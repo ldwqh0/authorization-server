@@ -15,7 +15,7 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
     private final String clientId;
     private String clientSecret;
     private final boolean autoApproval;
-    private final Set<String> scope;
+    private final Set<String> scopes;
     private final Set<String> registeredRedirectUris;
     private final Set<AuthorizationGrantType> authorizedGrantTypes;
 
@@ -37,7 +37,7 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.autoApproval = autoApproval;
-        this.scope = hashSet(scope);
+        this.scopes = hashSet(scope);
         this.registeredRedirectUris = hashSet(registeredRedirectUris);
         this.authorizedGrantTypes = transform(authorizedGrantTypes, AuthorizationGrantType::new);
         this.accessTokenValiditySeconds = accessTokenValiditySeconds;
@@ -66,8 +66,8 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
     }
 
     @Override
-    public Set<String> getScope() {
-        return this.scope;
+    public Set<String> getScopes() {
+        return this.scopes;
     }
 
     @Override
@@ -90,7 +90,7 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
         int result = 1;
         result = prime * result + ((clientId == null) ? 0 : clientId.hashCode());
         result = prime * result + ((clientSecret == null) ? 0 : clientSecret.hashCode());
-        result = prime * result + ((scope == null) ? 0 : scope.hashCode());
+        result = prime * result + ((scopes == null) ? 0 : scopes.hashCode());
         return result;
     }
 
@@ -113,16 +113,16 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
                 return false;
         } else if (!clientSecret.equals(other.clientSecret))
             return false;
-        if (scope == null) {
-            return other.scope == null;
+        if (scopes == null) {
+            return other.scopes == null;
         } else {
-            return scope.equals(other.scope);
+            return scopes.equals(other.scopes);
         }
     }
 
     @Override
     public String toString() {
-        return "BaseClientDetails [clientId=" + clientId + ", clientSecret=" + clientSecret + ", scope=" + scope
+        return "BaseClientDetails [clientId=" + clientId + ", clientSecret=" + clientSecret + ", scopes=" + scopes
             + ", registeredRedirectUris=" + registeredRedirectUris + ", authorizedGrantTypes="
             + authorizedGrantTypes + "]";
     }

@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.NullSecurityContextRepository;
 import org.xyyh.authorization.client.ClientDetailsService;
 import org.xyyh.authorization.provider.ClientDetailsUserDetailsService;
 
@@ -28,8 +29,12 @@ public class AuthorizationServerSecurityConfiguration extends WebSecurityConfigu
             .antMatchers("/oauth2/certs").permitAll()
             .anyRequest().authenticated();
         http.formLogin().disable();
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
+        // 根据rfc6749,如果客户端验证未通过，应用返回401和WWW-Authenticate header
         http.httpBasic();
+        // 使用NullSecurityContextRepository,防止将相关的安全信息写入Session或者其它地方
+        // 否则在同一浏览器环境下测试，会造成client的安全上下文和user的安全上下文混乱
+        http.securityContext().securityContextRepository(new NullSecurityContextRepository());
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
         http.csrf().disable();
     }
 

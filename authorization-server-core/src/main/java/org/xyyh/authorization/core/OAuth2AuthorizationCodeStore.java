@@ -1,6 +1,6 @@
 package org.xyyh.authorization.core;
 
-public interface OAuth2AuthorizationCodeStorageService {
+public interface OAuth2AuthorizationCodeStore {
 
     /**
      * 保存一个code和一个授权的关系

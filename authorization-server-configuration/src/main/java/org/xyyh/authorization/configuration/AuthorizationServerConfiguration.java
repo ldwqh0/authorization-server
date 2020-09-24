@@ -19,8 +19,6 @@ import org.xyyh.authorization.provider.*;
 
 @Configuration
 public class AuthorizationServerConfiguration {
-
-
     @Bean
     @ConditionalOnMissingBean({ClientDetailsService.class})
     public ClientDetailsService clientDetailsService() {
@@ -28,16 +26,33 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    public AuthorizationEndpoint authorizationEndpoint() {
-        return new AuthorizationEndpoint();
+    public AuthorizationEndpoint authorizationEndpoint(TokenGenerator tokenGenerator,
+                                                       ClientDetailsService clientDetailsService,
+                                                       OAuth2AuthorizationRequestValidator oAuth2RequestValidator,
+                                                       UserApprovalHandler userApprovalHandler,
+                                                       OAuth2AuthorizationCodeStore authorizationCodeService,
+                                                       OAuth2AccessTokenStore accessTokenService,
+                                                       OAuth2AuthorizationServerTokenServices tokenServices) {
+        return new AuthorizationEndpoint(
+            tokenGenerator,
+            clientDetailsService,
+            oAuth2RequestValidator,
+            userApprovalHandler,
+            authorizationCodeService,
+            tokenServices);
     }
 
     @Bean
-    public TokenEndpoint tokenEndpoint(OAuth2AuthorizationCodeService authorizationCodeService,
-                                       OAuth2AccessTokenService accessTokenService,
-                                       OAuth2RequestScopeValidator oAuth2RequestValidator,
-                                       TokenGenerator tokenGenerator) {
-        return new TokenEndpoint(authorizationCodeService, accessTokenService, tokenGenerator, oAuth2RequestValidator);
+    public TokenEndpoint tokenEndpoint(OAuth2AuthorizationCodeStore authorizationCodeService,
+                                       OAuth2RefreshTokenStore refreshTokenStorageService,
+                                       PkceValidator pkceValidator,
+                                       OAuth2AuthorizationServerTokenServices tokenService,
+                                       OAuth2RequestScopeValidator requestScopeValidator) {
+        return new TokenEndpoint(authorizationCodeService,
+            refreshTokenStorageService,
+            tokenService,
+            requestScopeValidator,
+            pkceValidator);
     }
 
     @Bean
@@ -66,9 +81,9 @@ public class AuthorizationServerConfiguration {
      * @return
      */
     @Bean
-    @ConditionalOnMissingBean(OAuth2AccessTokenService.class)
-    public OAuth2AccessTokenService oAuth2AccessTokenService() {
-        return new InMemoryOAuth2AccessTokenService();
+    @ConditionalOnMissingBean(OAuth2AccessTokenStore.class)
+    public OAuth2AccessTokenStore oAuth2AccessTokenService() {
+        return new InMemoryAccessTokenStorageService();
     }
 
     /**
@@ -77,15 +92,15 @@ public class AuthorizationServerConfiguration {
      * @return
      */
     @Bean
-    @ConditionalOnMissingBean(OAuth2AuthorizationCodeService.class)
-    public OAuth2AuthorizationCodeService oAuth2AuthorizationCodeService() {
-        return new InMemoryAuthorizationCodeService();
+    @ConditionalOnMissingBean(OAuth2AuthorizationCodeStore.class)
+    public OAuth2AuthorizationCodeStore oAuth2AuthorizationCodeService() {
+        return new InMemoryAuthorizationCodeStorageService();
     }
 
     @Bean
-    @ConditionalOnMissingBean(OAuth2RequestScopeValidator.class)
-    public OAuth2RequestScopeValidator oAuth2RequestValidator() {
-        return new DefaultOAuth2RequestScopeValidator();
+    @ConditionalOnMissingBean(OAuth2RefreshTokenStore.class)
+    public OAuth2RefreshTokenStore refreshTokenStorageService() {
+        return new InMemoryRefreshTokenStore();
     }
 
     @Bean
@@ -95,20 +110,48 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(OAuth2RequestScopeValidator.class)
+    public OAuth2RequestScopeValidator requestScopeValidator() {
+        return new DefaultOAuth2RequestScopeValidator();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(OAuth2AuthorizationRequestValidator.class)
+    public OAuth2AuthorizationRequestValidator oAuth2RequestValidator(OAuth2RedirectUriValidator redirectUriValidator, OAuth2RequestScopeValidator requestScopeValidator) {
+        return new DefaultOAuth2AuthorizationRequestValidator(redirectUriValidator, requestScopeValidator);
+    }
+
+
+    @Bean
     @ConditionalOnMissingBean(UserApprovalHandler.class)
-    public UserApprovalHandler userApprovalHandler(ApprovalStoreService approvalStoreService) {
+    public UserApprovalHandler userApprovalHandler(ApprovalStorageService approvalStoreService) {
         return new ApprovalStoreUserApprovalHandler(approvalStoreService);
     }
 
     @Bean
-    @ConditionalOnMissingBean(ApprovalStoreService.class)
-    public ApprovalStoreService approvalStoreService() {
-        return new InMemoryApprovalStoreService();
+    @ConditionalOnMissingBean(ApprovalStorageService.class)
+    public ApprovalStorageService approvalStoreService() {
+        return new InMemoryApprovalStorageService();
     }
 
     @Bean
     @ConditionalOnMissingBean(TokenGenerator.class)
     public TokenGenerator tokenGenerator() {
         return new DefaultTokenGenerator();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(PkceValidator.class)
+    public PkceValidator pkceValidator() {
+        return new CompositePkceValidator(
+            new PlainPkceValidator(),
+            new S256PkceValidator()
+        );
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(OAuth2AuthorizationServerTokenServices.class)
+    public OAuth2AuthorizationServerTokenServices tokenService(TokenGenerator tokenGenerator, OAuth2AccessTokenStore tokenStorageService, OAuth2RefreshTokenStore refreshTokenStore) {
+        return new DefaultTokenService(tokenGenerator, tokenStorageService, refreshTokenStore);
     }
 }

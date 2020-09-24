@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * 请求Token时错误信息
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-public class TokenRequestValidationException extends RuntimeException {
+public class TokenRequestValidationException extends Exception {
 
     private static final long serialVersionUID = -3157465183026609933L;
 

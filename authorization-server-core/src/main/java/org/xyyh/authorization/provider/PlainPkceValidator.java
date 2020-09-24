@@ -10,7 +10,7 @@ import org.xyyh.authorization.exception.TokenRequestValidationException;
 public class PlainPkceValidator implements PkceValidator {
 
     @Override
-    public void validate(String codeChallenge, String codeVerifier, String codeChallengeMethod) {
+    public void validate(String codeChallenge, String codeVerifier, String codeChallengeMethod) throws TokenRequestValidationException {
         if (CODE_CHALLENGE_METHOD_PLAIN.equals(codeChallengeMethod)) {
             if (!StringUtils.equals(codeChallenge, codeVerifier)) {
                 throw new TokenRequestValidationException("invalid_grant");

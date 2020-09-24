@@ -2,7 +2,7 @@ package org.xyyh.authorization.exception;
 
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 
-public class OpenidRequestValidationException extends RuntimeException {
+public class OpenidRequestValidationException extends Exception {
 
     private static final long serialVersionUID = -5266787893793188272L;
     /**
