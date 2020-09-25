@@ -1,5 +1,10 @@
 package org.xyyh.authorization.core;
 
+import java.util.Optional;
+
+/**
+ * 用于存储和消费Authorization Code
+ */
 public interface OAuth2AuthorizationCodeStore {
 
     /**
@@ -17,6 +22,6 @@ public interface OAuth2AuthorizationCodeStore {
      *
      * @param code 授权码
      */
-    OAuth2Authentication consume(String code);
+    Optional<OAuth2Authentication> consume(String code);
 
 }

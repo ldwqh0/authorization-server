@@ -11,6 +11,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemoryRefreshTokenStore implements OAuth2RefreshTokenStore {
     private final Map<String, OAuth2RefreshToken> tokenRepository = new ConcurrentHashMap<>();
     private final Map<String, OAuth2Authentication> authenticationRepository = new ConcurrentHashMap<>();
+    /**
+     * the key is refresh token ,the value is access token
+     */
     private final Map<String, String> accessTokenRepository = new ConcurrentHashMap<>();
 
     @Override
@@ -45,10 +48,11 @@ public class InMemoryRefreshTokenStore implements OAuth2RefreshTokenStore {
     }
 
     @Override
-    public Optional<String> findByAccessToken(String accessToken) {
+    public Optional<OAuth2RefreshToken> findByAccessToken(String accessToken) {
         return accessTokenRepository.entrySet().stream()
             .filter(entry -> entry.getValue().equals(accessToken))
             .findAny()
-            .map(Map.Entry::getKey);
+            .map(Map.Entry::getKey)
+            .map(tokenRepository::get);
     }
 }

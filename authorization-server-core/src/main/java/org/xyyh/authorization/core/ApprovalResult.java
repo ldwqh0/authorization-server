@@ -10,7 +10,7 @@ import java.util.Set;
 import static org.xyyh.authorization.collect.Sets.hashSet;
 
 /**
- * 表示授权结果
+ * 用户授权结果
  *
  * @author LiDong
  */

@@ -28,5 +28,5 @@ public interface OAuth2RefreshTokenStore {
 
     Optional<String> getAccessToken(String tokenValue);
 
-    Optional<String> findByAccessToken(String accessToken);
+    Optional<OAuth2RefreshToken> findByAccessToken(String accessToken);
 }

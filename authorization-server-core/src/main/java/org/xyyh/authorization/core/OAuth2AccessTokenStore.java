@@ -4,6 +4,9 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 
 import java.util.Optional;
 
+/**
+ * access token 存储服务
+ */
 public interface OAuth2AccessTokenStore {
 
     /**
@@ -22,10 +25,26 @@ public interface OAuth2AccessTokenStore {
      */
     void delete(String accessToken);
 
+    /**
+     * 根据access token值获取 {@link OAuth2Authentication}
+     *
+     * @param accessToken access token值
+     */
     Optional<OAuth2Authentication> getAuthentication(String accessToken);
 
+    /**
+     * 根据access token值获取 {@link OAuth2AccessToken}
+     *
+     * @param accessToken access token值
+     */
     Optional<OAuth2AccessToken> getAccessToken(String accessToken);
 
+    /**
+     * 根据{@link OAuth2Authentication}获取{@link OAuth2AccessToken}<br>
+     * 根据name,clientId,scope来确认authentication的唯一性
+     *
+     * @param authentication 用户的{@link OAuth2Authentication}
+     */
     Optional<OAuth2AccessToken> getAccessToken(OAuth2Authentication authentication);
 
 }

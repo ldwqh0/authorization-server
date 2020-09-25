@@ -83,7 +83,7 @@ public class AuthorizationServerConfiguration {
     @Bean
     @ConditionalOnMissingBean(OAuth2AccessTokenStore.class)
     public OAuth2AccessTokenStore oAuth2AccessTokenService() {
-        return new InMemoryAccessTokenStorageService();
+        return new InMemoryAccessTokenStore();
     }
 
     /**
@@ -94,7 +94,7 @@ public class AuthorizationServerConfiguration {
     @Bean
     @ConditionalOnMissingBean(OAuth2AuthorizationCodeStore.class)
     public OAuth2AuthorizationCodeStore oAuth2AuthorizationCodeService() {
-        return new InMemoryAuthorizationCodeStorageService();
+        return new InMemoryAuthorizationCodeStore();
     }
 
     @Bean
@@ -124,14 +124,14 @@ public class AuthorizationServerConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(UserApprovalHandler.class)
-    public UserApprovalHandler userApprovalHandler(ApprovalStorageService approvalStoreService) {
+    public UserApprovalHandler userApprovalHandler(ApprovalResultStore approvalStoreService) {
         return new ApprovalStoreUserApprovalHandler(approvalStoreService);
     }
 
     @Bean
-    @ConditionalOnMissingBean(ApprovalStorageService.class)
-    public ApprovalStorageService approvalStoreService() {
-        return new InMemoryApprovalStorageService();
+    @ConditionalOnMissingBean(ApprovalResultStore.class)
+    public ApprovalResultStore approvalStoreService() {
+        return new InMemoryApprovalStore();
     }
 
     @Bean

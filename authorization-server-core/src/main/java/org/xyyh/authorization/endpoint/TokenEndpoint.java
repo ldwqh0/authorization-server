@@ -163,26 +163,24 @@ public class TokenEndpoint {
         // 验证grant type
         validGrantTypes(client, "authorization_code");
         // 验证code
-        OAuth2Authentication authentication = authorizationCodeService.consume(code);
-        if ( // 首先验证code是否存在,没有找到指定的授权码信息时报错
-            !Objects.isNull(authentication)
-                // 验证client是否匹配code所指定的client
-                && StringUtils.equals(client.getClientId(), authentication.getClient().getClientId())
+        // 首先验证code是否存在,没有找到指定的授权码信息时报错
+        OAuth2Authentication authentication = authorizationCodeService.consume(code)
+            // 验证client是否匹配code所指定的client
+            .filter(auth -> StringUtils.equals(client.getClientId(), auth.getClient().getClientId())
                 // 颁发token时，验证RedirectUri是否匹配
                 // 颁发token时，redirect uri 必须和请求的redirect uri一致
-                && StringUtils.equals(redirectUri, authentication.getRequest().getRedirectUri())) {
-            Map<String, String> additionalParameters = authentication.getRequest().getAdditionalParameters();
-            // 根据请求进行pkce校验
-            validPkce(additionalParameters, requestParams);
-            // 签发token
-            OAuth2AccessToken accessToken = tokenService.createAccessToken(authentication);
-            // TODO 需要处理openid
-            Map<String, Object> response = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
-            // 返回 refresh_token
-            return addRefreshToken(response, client, authentication, accessToken.getTokenValue());
-        } else {
-            throw new TokenRequestValidationException("invalid_grant");
-        }
+                && StringUtils.equals(redirectUri, auth.getRequest().getRedirectUri()))
+            .orElseThrow(() -> new TokenRequestValidationException("invalid_grant"));
+        Map<String, String> additionalParameters = authentication.getRequest().getAdditionalParameters();
+        // 根据请求进行pkce校验
+        validPkce(additionalParameters, requestParams);
+        // 签发token
+        OAuth2AccessToken accessToken = tokenService.createAccessToken(authentication);
+
+        // TODO 需要处理openid
+        Map<String, Object> response = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+        // 返回 refresh_token
+        return addRefreshToken(response, client, authentication, accessToken.getTokenValue());
     }
 
 

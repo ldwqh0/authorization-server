@@ -2,7 +2,7 @@ package org.xyyh.authorization.provider;
 
 import org.springframework.security.core.Authentication;
 import org.xyyh.authorization.core.ApprovalResult;
-import org.xyyh.authorization.core.ApprovalStorageService;
+import org.xyyh.authorization.core.ApprovalResultStore;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 
 import java.time.ZonedDateTime;
@@ -14,9 +14,9 @@ import java.util.Set;
  */
 public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler {
 
-    private final ApprovalStorageService approvalStoreService;
+    private final ApprovalResultStore approvalStoreService;
 
-    public ApprovalStoreUserApprovalHandler(ApprovalStorageService approvalStoreService) {
+    public ApprovalStoreUserApprovalHandler(ApprovalResultStore approvalStoreService) {
         this.approvalStoreService = approvalStoreService;
     }
 

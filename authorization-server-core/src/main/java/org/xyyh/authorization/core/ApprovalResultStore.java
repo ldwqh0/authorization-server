@@ -2,7 +2,10 @@ package org.xyyh.authorization.core;
 
 import java.util.Optional;
 
-public interface ApprovalStorageService {
+/**
+ * 授权结果存储服务，用于保存用户的授权结果信息
+ */
+public interface ApprovalResultStore {
     /**
      * 保存一条授权信息
      *

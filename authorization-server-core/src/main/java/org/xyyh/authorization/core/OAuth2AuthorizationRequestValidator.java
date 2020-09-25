@@ -10,21 +10,15 @@ import org.xyyh.authorization.exception.UnsupportedResponseTypeException;
 /**
  * OAuth2请求验证器，用户验证请求的正确性
  */
+@FunctionalInterface
 public interface OAuth2AuthorizationRequestValidator {
 
-    /**
-     * 验证token请求的正确性
-     *
-     * @param scopes the TokenRequest to be validated
-     * @param client the client that is making the request
-     */
-//    void validateScope(Set<String> scopes, ClientDetails client);
 
     /**
      * 对一个oauth2授权请求进行验证
      *
-     * @param request
-     * @param client
+     * @param request 用户授权请求
+     * @param client  连接程序
      */
     void validate(OpenidAuthorizationRequest request, ClientDetails client) throws InvalidScopeException, UnsupportedResponseTypeException, OpenidRequestValidationException, UnRegisteredRedirectUriException;
 

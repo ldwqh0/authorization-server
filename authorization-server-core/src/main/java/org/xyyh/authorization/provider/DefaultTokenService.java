@@ -25,7 +25,8 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
 
     public void deleteAccessToken(String accessToken) {
         accessTokenStore.delete(accessToken);
-        refreshTokenStore.findByAccessToken(accessToken).ifPresent(refreshTokenStore::delete);
+        refreshTokenStore.findByAccessToken(accessToken)
+            .map(OAuth2RefreshToken::getTokenValue).ifPresent(refreshTokenStore::delete);
     }
 
     @Override
@@ -54,10 +55,13 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
 
     @Override
     public OAuth2RefreshToken createRefreshToken(String accessToken, ClientDetails client) {
-        OAuth2RefreshToken refreshToken = tokenGenerator.generateRefreshToken(client);
-        return accessTokenStore.getAuthentication(accessToken)
-            .map(authentication -> refreshTokenStore.save(refreshToken, accessToken, authentication))
-            .orElseThrow(RuntimeException::new);
+        // 如果有现成的refresh token，直接返回现有的
+        return refreshTokenStore.findByAccessToken(accessToken).orElseGet(() -> {
+            OAuth2RefreshToken refreshToken = tokenGenerator.generateRefreshToken(client);
+            return accessTokenStore.getAuthentication(accessToken)
+                .map(authentication -> refreshTokenStore.save(refreshToken, accessToken, authentication))
+                .orElseThrow(RuntimeException::new);
+        });
     }
 
     @Override
