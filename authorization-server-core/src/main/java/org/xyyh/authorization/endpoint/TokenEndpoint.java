@@ -16,7 +16,6 @@ import org.xyyh.authorization.core.*;
 import org.xyyh.authorization.exception.InvalidScopeException;
 import org.xyyh.authorization.exception.RefreshTokenValidationException;
 import org.xyyh.authorization.exception.TokenRequestValidationException;
-import org.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
 import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 
 import javax.validation.constraints.NotNull;
@@ -105,7 +104,7 @@ public class TokenEndpoint {
             if (user.isAuthenticated()) {
                 // 构建授权结果
                 ApprovalResult approvalResult = ApprovalResult.of(scopes);
-                OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(null, approvalResult, client, user);
+                OAuth2Authentication authentication = OAuth2Authentication.of(approvalResult, client, user);
                 // 生成并保存token
                 OAuth2ServerAccessToken accessToken = tokenService.createAccessToken(authentication);
                 // 返回token

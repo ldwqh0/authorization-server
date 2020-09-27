@@ -93,7 +93,7 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
             Authentication user = new PreAuthenticatedAuthenticationToken(preAuthentication, preAuthentication.getAuthorities());
             user = preProviderManager.authenticate(user);
             // 创建一个新的OAuth2Authentication
-            OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(preAuthentication.getRequest(), ApprovalResult.of(scopeToUse), client, user);
+            OAuth2Authentication authentication = OAuth2Authentication.of(preAuthentication.getRequest(), ApprovalResult.of(scopeToUse), client, user);
             // 删除之前的access token
             accessTokenStore.deleteByRefreshToken(internRefreshTokenValue);
             // 创建一个新的token
@@ -132,7 +132,7 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
         if (isSupportRefreshToken(client)) {
             refreshToken = generateRefreshToken(client);
         }
-        return new DefaultOAuth2ServerAccessToken(OAuth2AccessToken.TokenType.BEARER, tokenValue, issuedAt, expiresAt, scopes, refreshToken);
+        return OAuth2ServerAccessToken.of(OAuth2AccessToken.TokenType.BEARER, tokenValue, issuedAt, expiresAt, scopes, refreshToken);
     }
 
     private OAuth2ServerRefreshToken generateRefreshToken(ClientDetails client) {
@@ -140,6 +140,6 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
         Integer validitySeconds = Optional.ofNullable(client.getRefreshTokenValiditySeconds()).orElse(defaultRefreshTokenValiditySeconds);
         Instant expiresAt = issuedAt.plus(validitySeconds, ChronoUnit.SECONDS);
         String tokenValue = stringGenerator.generateKey();
-        return new DefaultOAuth2RefreshToken(tokenValue, issuedAt, expiresAt);
+        return OAuth2ServerRefreshToken.of(tokenValue, issuedAt, expiresAt);
     }
 }

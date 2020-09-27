@@ -21,8 +21,6 @@ import org.xyyh.authorization.core.*;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationFlow;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import org.xyyh.authorization.exception.*;
-import org.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
-import org.xyyh.authorization.provider.DefaultOAuth2AuthorizationCode;
 import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 
 import java.time.Instant;
@@ -194,7 +192,7 @@ public class AuthorizationEndpoint {
                                          ApprovalResult result,
                                          ClientDetails client,
                                          Authentication userAuthentication) {
-        OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(request, result, client, userAuthentication);
+        OAuth2Authentication authentication = OAuth2Authentication.of(request, result, client, userAuthentication);
         OAuth2ServerAccessToken accessToken = tokenServices.createAccessToken(authentication);
         Map<String, Object> fragment = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
         String state = request.getState();
@@ -227,7 +225,7 @@ public class AuthorizationEndpoint {
         // 创建授权码
         OAuth2AuthorizationCode authorizationCode = generateAuthorizationCode();
         // 创建并保存授权码
-        authorizationCode = authorizationCodeStorageService.save(authorizationCode, new DefaultOAuth2AuthenticationToken(request, result, client, userAuthentication));
+        authorizationCode = authorizationCodeStorageService.save(authorizationCode, OAuth2Authentication.of(request, result, client, userAuthentication));
         query.put("code", authorizationCode.getValue());
         return buildRedirectView(request.getRedirectUri(), query, null);
     }
@@ -307,6 +305,6 @@ public class AuthorizationEndpoint {
         Instant issueAt = Instant.now();
         // code有效期默认三分钟
         Instant expireAt = issueAt.plusSeconds(periodOfValidity);
-        return new DefaultOAuth2AuthorizationCode(codeValue, issueAt, expireAt);
+        return OAuth2AuthorizationCode.of(codeValue, issueAt, expireAt);
     }
 }
