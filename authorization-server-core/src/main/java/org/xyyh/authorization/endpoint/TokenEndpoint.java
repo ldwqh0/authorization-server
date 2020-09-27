@@ -5,25 +5,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.web.bind.annotation.*;
 import org.xyyh.authorization.client.ClientDetails;
-import org.xyyh.authorization.collect.CollectionUtils;
 import org.xyyh.authorization.collect.Maps;
 import org.xyyh.authorization.core.*;
 import org.xyyh.authorization.exception.InvalidScopeException;
 import org.xyyh.authorization.exception.RefreshTokenValidationException;
 import org.xyyh.authorization.exception.TokenRequestValidationException;
 import org.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
-import org.xyyh.authorization.provider.PreAuthenticatedAuthenticationToken;
-import org.xyyh.authorization.provider.PreAuthenticatedProvider;
 import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 
 import javax.validation.constraints.NotNull;
@@ -51,12 +44,6 @@ public class TokenEndpoint {
     @Autowired
     private final OAuth2RequestScopeValidator scopeValidator;
 
-    /**
-     * 对用户进行无密码的校验<br>
-     * 用于refresh token校验
-     */
-    private ProviderManager preProviderManager;
-
     private final PkceValidator pkceValidator;
 
     public TokenEndpoint(OAuth2AuthorizationCodeStore authorizationCodeService,
@@ -74,14 +61,6 @@ public class TokenEndpoint {
     public void setUserAuthenticationManager(AuthenticationManager userAuthenticationManager) {
         this.userAuthenticationManager = userAuthenticationManager;
     }
-
-    @Autowired(required = false)
-    public void setUserDetailsService(UserDetailsService userDetailsService) {
-        if (userDetailsService != null) {
-            this.preProviderManager = new ProviderManager(Arrays.asList(new PreAuthenticatedProvider(userDetailsService)));
-        }
-    }
-
 
     /**
      * 不支持 get请求获取token,返回415状态码
@@ -128,10 +107,10 @@ public class TokenEndpoint {
                 ApprovalResult approvalResult = ApprovalResult.of(scopes);
                 OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(null, approvalResult, client, user);
                 // 生成并保存token
-                OAuth2AccessToken accessToken = tokenService.createAccessToken(authentication);
+                OAuth2ServerAccessToken accessToken = tokenService.createAccessToken(authentication);
                 // 返回token
                 Map<String, Object> result = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
-                return addRefreshToken(result, client, authentication, accessToken.getTokenValue());
+                return result;
             } else {
                 throw new TokenRequestValidationException("invalid_request");
             }
@@ -175,12 +154,13 @@ public class TokenEndpoint {
         // 根据请求进行pkce校验
         validPkce(additionalParameters, requestParams);
         // 签发token
-        OAuth2AccessToken accessToken = tokenService.createAccessToken(authentication);
+        OAuth2ServerAccessToken accessToken = tokenService.createAccessToken(authentication);
 
         // TODO 需要处理openid
         Map<String, Object> response = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
         // 返回 refresh_token
-        return addRefreshToken(response, client, authentication, accessToken.getTokenValue());
+        return response;
+//        return addRefreshToken(response, client, authentication, accessToken.getTokenValue());
     }
 
 
@@ -198,44 +178,16 @@ public class TokenEndpoint {
         @RequestParam("refresh_token") String refreshToken,
         @RequestParam(value = "scope", required = false) String scope
     ) throws TokenRequestValidationException {
-        refreshToken = refreshToken.intern();
+
+        List<String> requestScopes = Optional.ofNullable(scope)
+            .map(v -> v.split(SPACE_REGEX))
+            .map(Arrays::asList)
+            .orElseGet(Collections::emptyList);
         // 对token进行预检，如果检测失败，抛出异常
         try {
-            tokenService.preCheckRefreshToken(refreshToken);
-            // 同一时刻，针对用一个refresh token,有且仅有一个线程可以读取某个refresh token的相关信息
-            synchronized (refreshToken) {
-                // 进行双重检查
-                tokenService.preCheckRefreshToken(refreshToken);
-                OAuth2Authentication preAuthentication = tokenService.loadAuthenticationByRefreshToken(refreshToken).orElseThrow(RefreshTokenValidationException::new);
-                // 验证传入的refresh token是否发布给该client
-                if (!Objects.equals(preAuthentication.getClient().getClientId(), client.getClientId())) {
-                    throw new TokenRequestValidationException("invalid_grant");
-                }
-                // 验证重新请求的scope不能不能大于之前的scope
-                List<String> requestScopes = Optional.ofNullable(scope)
-                    .map(v -> v.split(SPACE_REGEX))
-                    .map(Arrays::asList)
-                    .orElseGet(Collections::emptyList);
-                Set<String> scopeToUse = preAuthentication.getScopes();
-                if (!CollectionUtils.containsAll(preAuthentication.getScopes(), requestScopes)) {
-                    throw new TokenRequestValidationException("invalid_grant");
-                }
-                if (CollectionUtils.isNotEmpty(requestScopes)) {
-                    scopeToUse = hashSet(requestScopes);
-                }
-                // 使用refreshToken时,需要重新加载用户的信息
-                Authentication user = new PreAuthenticatedAuthenticationToken(preAuthentication, preAuthentication.getAuthorities());
-                user = preProviderManager.authenticate(user);
-                // 创建一个新的OAuth2Authentication
-                OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(preAuthentication.getRequest(), ApprovalResult.of(scopeToUse), client, user);
-                // TODO 需要强制更新accessToken,这里可能会返回之前的token,需要处理一下
-                OAuth2AccessToken accessToken = tokenService.refreshAccessToken(refreshToken, authentication);
-                // 如果验证成功，删除之前的access token
-                tokenService.deleteRefreshToken(refreshToken);
-                Map<String, Object> response = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
-                addRefreshToken(response, client, authentication, accessToken.getTokenValue());
-                return response;
-            }
+            OAuth2ServerAccessToken accessToken = tokenService.refreshAccessToken(refreshToken, client, requestScopes);
+            Map<String, Object> response = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+            return response;
         } catch (RefreshTokenValidationException ex) {
             throw new TokenRequestValidationException("invalid_grant");
         }
@@ -307,21 +259,6 @@ public class TokenEndpoint {
         }
     }
 
-    /**
-     * 添加refresh_token
-     *
-     * @param result             待添加的参数列表
-     * @param client             连接信息
-     * @param userAuthentication 用户授权信息
-     * @return 添加之后的响应体
-     */
-    private Map<String, ?> addRefreshToken(Map<String, Object> result, ClientDetails client, OAuth2Authentication userAuthentication, String accessToken) {
-        if (isSupportRefreshToken(client)) {
-            OAuth2RefreshToken refreshToken = tokenService.createRefreshToken(accessToken, client);
-            result.put("refresh_token", refreshToken.getTokenValue());
-        }
-        return result;
-    }
 
     private void validGrantTypes(ClientDetails client, @NotNull String grantType) throws TokenRequestValidationException {
         Set<AuthorizationGrantType> grantTypes = client.getAuthorizedGrantTypes();
@@ -331,14 +268,5 @@ public class TokenEndpoint {
         }
     }
 
-    /**
-     * 验证请求是否支持refresh_token
-     *
-     * @param client 待验证的client
-     * @return 支持返回true, 不支持返回false
-     */
-    private boolean isSupportRefreshToken(ClientDetails client) {
-        return this.preProviderManager != null && client.getAuthorizedGrantTypes().contains(AuthorizationGrantType.REFRESH_TOKEN);
-    }
 
 }

@@ -4,7 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
+import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
@@ -21,8 +22,11 @@ import org.xyyh.authorization.endpoint.request.OpenidAuthorizationFlow;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import org.xyyh.authorization.exception.*;
 import org.xyyh.authorization.provider.DefaultOAuth2AuthenticationToken;
+import org.xyyh.authorization.provider.DefaultOAuth2AuthorizationCode;
 import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 
+import java.time.Instant;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -35,7 +39,9 @@ public class AuthorizationEndpoint {
     private static final String OAUTH2_AUTHORIZATION_CLIENT = "authorizationClient";
     private static final String USER_OAUTH_APPROVAL = "user_oauth_approval";
 
-    private final TokenGenerator tokenGenerator;
+    private Integer periodOfValidity = 180;
+
+    private final StringKeyGenerator stringGenerator = new Base64StringKeyGenerator(Base64.getUrlEncoder(), 33);
 
     private final ClientDetailsService clientDetailsService;
 
@@ -47,13 +53,11 @@ public class AuthorizationEndpoint {
 
     private final OAuth2AuthorizationServerTokenServices tokenServices;
 
-    public AuthorizationEndpoint(TokenGenerator tokenGenerator,
-                                 ClientDetailsService clientDetailsService,
+    public AuthorizationEndpoint(ClientDetailsService clientDetailsService,
                                  OAuth2AuthorizationRequestValidator requestValidator,
                                  UserApprovalHandler userApprovalHandler,
                                  OAuth2AuthorizationCodeStore authorizationCodeService,
                                  OAuth2AuthorizationServerTokenServices tokenServices) {
-        this.tokenGenerator = tokenGenerator;
         this.clientDetailsService = clientDetailsService;
         this.oAuth2RequestValidator = requestValidator;
         this.userApprovalHandler = userApprovalHandler;
@@ -191,13 +195,13 @@ public class AuthorizationEndpoint {
                                          ClientDetails client,
                                          Authentication userAuthentication) {
         OAuth2Authentication authentication = new DefaultOAuth2AuthenticationToken(request, result, client, userAuthentication);
-        OAuth2AccessToken accessToken = tokenServices.createAccessToken(authentication);
+        OAuth2ServerAccessToken accessToken = tokenServices.createAccessToken(authentication);
         Map<String, Object> fragment = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
         String state = request.getState();
         if (StringUtils.isNotBlank(state)) {
             fragment.put("state", state);
         }
-        // 简易模式下，不能返回access_token
+        // 简易模式下，不能返回refresh token
         return buildRedirectView(request.getRedirectUri(), null, fragment);
     }
 
@@ -221,7 +225,7 @@ public class AuthorizationEndpoint {
             query.put("state", state);
         }
         // 创建授权码
-        OAuth2AuthorizationCode authorizationCode = tokenGenerator.generateAuthorizationCode();
+        OAuth2AuthorizationCode authorizationCode = generateAuthorizationCode();
         // 创建并保存授权码
         authorizationCode = authorizationCodeStorageService.save(authorizationCode, new DefaultOAuth2AuthenticationToken(request, result, client, userAuthentication));
         query.put("code", authorizationCode.getValue());
@@ -295,5 +299,14 @@ public class AuthorizationEndpoint {
         OpenidAuthorizationRequest request = ex.getRequest();
         String redirect = Objects.isNull(request) ? null : request.getRedirectUri();
         return buildRedirectView(redirect, error, null);
+    }
+
+
+    private OAuth2AuthorizationCode generateAuthorizationCode() {
+        String codeValue = stringGenerator.generateKey();
+        Instant issueAt = Instant.now();
+        // code有效期默认三分钟
+        Instant expireAt = issueAt.plusSeconds(periodOfValidity);
+        return new DefaultOAuth2AuthorizationCode(codeValue, issueAt, expireAt);
     }
 }

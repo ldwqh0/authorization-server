@@ -4,6 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.xyyh.authorization.collect.Maps;
 import org.xyyh.authorization.core.OAuth2Authentication;
+import org.xyyh.authorization.core.OAuth2ServerAccessToken;
+import org.xyyh.authorization.core.OAuth2ServerRefreshToken;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -19,7 +21,7 @@ public final class OAuth2AccessTokenUtils {
 
     static final String SPACE = " ";
 
-    public static Map<String, Object> converterToken2Map(OAuth2AccessToken accessToken) {
+    public static Map<String, Object> converterToken2Map(OAuth2ServerAccessToken accessToken) {
         long expiresIn = -1;
         Instant expiresAt = accessToken.getExpiresAt();
         if (expiresAt != null) {
@@ -29,8 +31,9 @@ public final class OAuth2AccessTokenUtils {
         result.put("access_token", accessToken.getTokenValue());
         result.put("token_type", accessToken.getTokenType().getValue());
         result.put("expires_in", expiresIn);
-        // TODO refreshToken策略 result.put("refresh_token", "");
-        // TODO scope策略 result.put("scope", ""); accessToken.getScopes();
+        accessToken.getRefreshToken()
+            .map(OAuth2ServerRefreshToken::getTokenValue)
+            .ifPresent(value -> result.put("refresh_token", value));
         return result;
     }
 

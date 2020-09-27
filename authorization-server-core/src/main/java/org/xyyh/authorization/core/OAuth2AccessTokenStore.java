@@ -1,6 +1,5 @@
 package org.xyyh.authorization.core;
 
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 
 import java.util.Optional;
 
@@ -16,7 +15,7 @@ public interface OAuth2AccessTokenStore {
      * @param authentication 和token相关的权限信息
      * @return 保存之后的token, tokenValue值可能已经发生了变化，但其它属性不应该产生变化
      */
-    OAuth2AccessToken save(OAuth2AccessToken token, OAuth2Authentication authentication);
+    OAuth2ServerAccessToken save(OAuth2ServerAccessToken token, OAuth2Authentication authentication);
 
     /**
      * 删除一个现有的accessToken
@@ -25,26 +24,30 @@ public interface OAuth2AccessTokenStore {
      */
     void delete(String accessToken);
 
+
+    /**
+     * 根据access token值获取 {@link OAuth2ServerAccessToken}
+     *
+     * @param accessToken access token值
+     */
+    Optional<OAuth2ServerAccessToken> getAccessToken(String accessToken);
+
+    /**
+     * 根据{@link OAuth2Authentication}获取{@link OAuth2ServerAccessToken}<br>
+     * 根据name,clientId,scope来确认authentication的唯一性
+     *
+     * @param authentication 用户的{@link OAuth2Authentication}
+     */
+    Optional<OAuth2ServerAccessToken> getAccessToken(OAuth2Authentication authentication);
+
     /**
      * 根据access token值获取 {@link OAuth2Authentication}
      *
      * @param accessToken access token值
      */
-    Optional<OAuth2Authentication> getAuthentication(String accessToken);
+    Optional<OAuth2Authentication> loadAuthentication(String accessToken);
 
-    /**
-     * 根据access token值获取 {@link OAuth2AccessToken}
-     *
-     * @param accessToken access token值
-     */
-    Optional<OAuth2AccessToken> getAccessToken(String accessToken);
+    Optional<OAuth2Authentication> loadAuthenticationByRefreshToken(String refreshToken);
 
-    /**
-     * 根据{@link OAuth2Authentication}获取{@link OAuth2AccessToken}<br>
-     * 根据name,clientId,scope来确认authentication的唯一性
-     *
-     * @param authentication 用户的{@link OAuth2Authentication}
-     */
-    Optional<OAuth2AccessToken> getAccessToken(OAuth2Authentication authentication);
-
+    void deleteByRefreshToken(String refreshTokenValue);
 }

@@ -26,15 +26,13 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    public AuthorizationEndpoint authorizationEndpoint(TokenGenerator tokenGenerator,
-                                                       ClientDetailsService clientDetailsService,
+    public AuthorizationEndpoint authorizationEndpoint(ClientDetailsService clientDetailsService,
                                                        OAuth2AuthorizationRequestValidator oAuth2RequestValidator,
                                                        UserApprovalHandler userApprovalHandler,
                                                        OAuth2AuthorizationCodeStore authorizationCodeService,
                                                        OAuth2AccessTokenStore accessTokenService,
                                                        OAuth2AuthorizationServerTokenServices tokenServices) {
         return new AuthorizationEndpoint(
-            tokenGenerator,
             clientDetailsService,
             oAuth2RequestValidator,
             userApprovalHandler,
@@ -89,7 +87,6 @@ public class AuthorizationServerConfiguration {
     /**
      * 保存 Authorization Code
      *
-     * @return
      */
     @Bean
     @ConditionalOnMissingBean(OAuth2AuthorizationCodeStore.class)
@@ -135,12 +132,6 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(TokenGenerator.class)
-    public TokenGenerator tokenGenerator() {
-        return new DefaultTokenGenerator();
-    }
-
-    @Bean
     @ConditionalOnMissingBean(PkceValidator.class)
     public PkceValidator pkceValidator() {
         return new CompositePkceValidator(
@@ -150,8 +141,8 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(OAuth2AuthorizationServerTokenServices.class)
-    public OAuth2AuthorizationServerTokenServices tokenService(TokenGenerator tokenGenerator, OAuth2AccessTokenStore tokenStorageService, OAuth2RefreshTokenStore refreshTokenStore) {
-        return new DefaultTokenService(tokenGenerator, tokenStorageService, refreshTokenStore);
+    @ConditionalOnMissingBean({OAuth2AuthorizationServerTokenServices.class, OAuth2ResourceServerTokenServices.class})
+    public DefaultTokenService tokenService(OAuth2AccessTokenStore tokenStorageService, OAuth2RefreshTokenStore refreshTokenStore) {
+        return new DefaultTokenService(tokenStorageService);
     }
 }
