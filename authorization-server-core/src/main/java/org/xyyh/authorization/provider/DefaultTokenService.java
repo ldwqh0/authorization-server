@@ -9,7 +9,7 @@ import org.xyyh.authorization.exception.RefreshTokenValidationException;
 import java.time.Instant;
 import java.util.Optional;
 
-public class DefaultTokenService implements OAuth2AuthorizationServerTokenServices {
+public class DefaultTokenService implements OAuth2AuthorizationServerTokenServices, OAuth2ResourceServerTokenServices {
 
     private final TokenGenerator tokenGenerator;
 
@@ -86,8 +86,18 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
     }
 
     @Override
-    public Optional<OAuth2Authentication> getAuthenticationByRefreshToken(String refreshToken) {
+    public Optional<OAuth2Authentication> loadAuthenticationByRefreshToken(String refreshToken) {
         return refreshTokenStore.getAuthentication(refreshToken);
+    }
+
+    @Override
+    public Optional<OAuth2Authentication> loadAuthentication(String accessToken) {
+        return accessTokenStore.getAuthentication(accessToken);
+    }
+
+    @Override
+    public Optional<OAuth2AccessToken> readAccessToken(String accessToken) {
+        return accessTokenStore.getAccessToken(accessToken);
     }
 
     @Override

@@ -206,7 +206,7 @@ public class TokenEndpoint {
             synchronized (refreshToken) {
                 // 进行双重检查
                 tokenService.preCheckRefreshToken(refreshToken);
-                OAuth2Authentication preAuthentication = tokenService.getAuthenticationByRefreshToken(refreshToken).orElseThrow(RefreshTokenValidationException::new);
+                OAuth2Authentication preAuthentication = tokenService.loadAuthenticationByRefreshToken(refreshToken).orElseThrow(RefreshTokenValidationException::new);
                 // 验证传入的refresh token是否发布给该client
                 if (!Objects.equals(preAuthentication.getClient().getClientId(), client.getClientId())) {
                     throw new TokenRequestValidationException("invalid_grant");

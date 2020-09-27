@@ -31,7 +31,7 @@ public interface OAuth2AuthorizationServerTokenServices {
      */
     void preCheckRefreshToken(String refreshToken) throws RefreshTokenValidationException;
 
-    Optional<OAuth2Authentication> getAuthenticationByRefreshToken(String refreshToken);
+    Optional<OAuth2Authentication> loadAuthenticationByRefreshToken(String refreshToken);
 
     void deleteRefreshToken(String refreshToken);
 }
