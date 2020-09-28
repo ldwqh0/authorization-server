@@ -25,15 +25,15 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
     private final boolean requirePkce;
 
     public BaseClientDetails(
-        String clientId,
-        String clientSecret,
-        boolean autoApproval,
-        Set<String> scope,
-        Set<String> registeredRedirectUris,
-        Set<String> authorizedGrantTypes,
-        Integer accessTokenValiditySeconds,
-        Integer refreshTokenValiditySeconds,
-        boolean requirePkce) {
+            String clientId,
+            String clientSecret,
+            boolean autoApproval,
+            Set<String> scope,
+            Set<String> registeredRedirectUris,
+            Set<String> authorizedGrantTypes,
+            Integer accessTokenValiditySeconds,
+            Integer refreshTokenValiditySeconds,
+            boolean requirePkce) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.autoApproval = autoApproval;
@@ -123,8 +123,8 @@ public class BaseClientDetails implements CredentialsContainer, ClientDetails {
     @Override
     public String toString() {
         return "BaseClientDetails [clientId=" + clientId + ", clientSecret=" + clientSecret + ", scopes=" + scopes
-            + ", registeredRedirectUris=" + registeredRedirectUris + ", authorizedGrantTypes="
-            + authorizedGrantTypes + "]";
+                + ", registeredRedirectUris=" + registeredRedirectUris + ", authorizedGrantTypes="
+                + authorizedGrantTypes + "]";
     }
 
     @Override

@@ -33,11 +33,11 @@ public class AuthorizationServerConfiguration {
                                                        OAuth2AccessTokenStore accessTokenService,
                                                        OAuth2AuthorizationServerTokenServices tokenServices) {
         return new AuthorizationEndpoint(
-            clientDetailsService,
-            oAuth2RequestValidator,
-            userApprovalHandler,
-            authorizationCodeService,
-            tokenServices);
+                clientDetailsService,
+                oAuth2RequestValidator,
+                userApprovalHandler,
+                authorizationCodeService,
+                tokenServices);
     }
 
     @Bean
@@ -47,10 +47,10 @@ public class AuthorizationServerConfiguration {
                                        OAuth2AuthorizationServerTokenServices tokenService,
                                        OAuth2RequestScopeValidator requestScopeValidator) {
         return new TokenEndpoint(authorizationCodeService,
-            refreshTokenStorageService,
-            tokenService,
-            requestScopeValidator,
-            pkceValidator);
+                refreshTokenStorageService,
+                tokenService,
+                requestScopeValidator,
+                pkceValidator);
     }
 
     @Bean
@@ -86,7 +86,6 @@ public class AuthorizationServerConfiguration {
 
     /**
      * 保存 Authorization Code
-     *
      */
     @Bean
     @ConditionalOnMissingBean(OAuth2AuthorizationCodeStore.class)
@@ -135,8 +134,8 @@ public class AuthorizationServerConfiguration {
     @ConditionalOnMissingBean(PkceValidator.class)
     public PkceValidator pkceValidator() {
         return new CompositePkceValidator(
-            new PlainPkceValidator(),
-            new S256PkceValidator()
+                new PlainPkceValidator(),
+                new S256PkceValidator()
         );
     }
 

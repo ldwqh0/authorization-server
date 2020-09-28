@@ -57,7 +57,7 @@ public class InMemoryApprovalStore implements ApprovalResultStore {
             if (o == null || getClass() != o.getClass()) return false;
             UnionKey key = (UnionKey) o;
             return Objects.equals(userid, key.userid) &&
-                Objects.equals(clientId, key.clientId);
+                    Objects.equals(clientId, key.clientId);
         }
 
         @Override

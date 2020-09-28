@@ -21,8 +21,6 @@ import static org.xyyh.authorization.collect.Sets.hashSet;
 
 public class DefaultTokenService implements OAuth2AuthorizationServerTokenServices, OAuth2ResourceServerTokenServices {
 
-    // 授权码有效期，默认为3分钟
-    private Integer periodOfValidity = 180;
     private Integer defaultAccessTokenValiditySeconds = 3600;
     private Integer defaultRefreshTokenValiditySeconds = 7200;
 

@@ -14,7 +14,7 @@ import org.xyyh.authorization.configuration.AuthorizationServerSecurityConfigura
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import({ AuthorizationServerSecurityConfiguration.class, AuthorizationServerConfiguration.class })
+@Import({AuthorizationServerSecurityConfiguration.class, AuthorizationServerConfiguration.class})
 public @interface EnableAuthorizationServer {
 
 }

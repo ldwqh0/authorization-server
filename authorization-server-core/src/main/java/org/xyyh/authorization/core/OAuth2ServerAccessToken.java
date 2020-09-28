@@ -35,6 +35,7 @@ public interface OAuth2ServerAccessToken extends Serializable {
  */
 class DefaultOAuth2ServerAccessToken extends OAuth2AccessToken implements OAuth2ServerAccessToken {
 
+    private static final long serialVersionUID = 6322641771177832776L;
     private final OAuth2ServerRefreshToken refreshToken;
 
     public DefaultOAuth2ServerAccessToken(TokenType tokenType, String tokenValue, Instant issuedAt, Instant expiresAt) {

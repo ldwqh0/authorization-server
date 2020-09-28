@@ -128,28 +128,28 @@ public class OpenidAuthorizationRequest implements Serializable {
     public static OpenidAuthorizationRequest of(String uri, MultiValueMap<String, String> parameters) {
         Map<String, String> additionalParameters = new HashMap<>();
         parameters.entrySet().stream()
-            .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
-                !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
-                !e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI) &&
-                !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
-                !e.getKey().equals(OAuth2ParameterNames.STATE))
-            .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
+                .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
+                        !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
+                        !e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI) &&
+                        !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
+                        !e.getKey().equals(OAuth2ParameterNames.STATE))
+                .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
         Set<String> scopes = parameters.get(OAuth2ParameterNames.SCOPE)
-            .stream().flatMap(v -> Arrays.stream(v.split(SPACE_REGEX)))
-            .collect(Collectors.toSet());
+                .stream().flatMap(v -> Arrays.stream(v.split(SPACE_REGEX)))
+                .collect(Collectors.toSet());
         Set<String> responseTypes = parameters.get(OAuth2ParameterNames.RESPONSE_TYPE)
-            .stream().flatMap(v -> Arrays.stream(v.split(SPACE_REGEX)))
-            .collect(Collectors.toSet());
+                .stream().flatMap(v -> Arrays.stream(v.split(SPACE_REGEX)))
+                .collect(Collectors.toSet());
         return new OpenidAuthorizationRequest(
-            responseTypes,
-            null,
-            parameters.getFirst(OAuth2ParameterNames.CLIENT_ID),
-            parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI),
-            scopes,
-            parameters.getFirst(OAuth2ParameterNames.STATE),
-            additionalParameters,
-            uri,
-            Collections.emptyMap()
+                responseTypes,
+                null,
+                parameters.getFirst(OAuth2ParameterNames.CLIENT_ID),
+                parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI),
+                scopes,
+                parameters.getFirst(OAuth2ParameterNames.STATE),
+                additionalParameters,
+                uri,
+                Collections.emptyMap()
         );
     }
 }

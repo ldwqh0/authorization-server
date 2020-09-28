@@ -70,10 +70,10 @@ public class TokenEndpoint {
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     // 暂不支持get请求
     public Map<String, ?> getAccessToken(
-        Authentication principal,
-        @RequestParam("grant_type") String grantType,
-        @RequestParam("code") String code,
-        @RequestParam("redirect_uri") String redirectUri) {
+            Authentication principal,
+            @RequestParam("grant_type") String grantType,
+            @RequestParam("code") String code,
+            @RequestParam("redirect_uri") String redirectUri) {
         return Collections.emptyMap();
     }
 
@@ -87,10 +87,13 @@ public class TokenEndpoint {
     @PostMapping(params = {"grant_type=password"})
     @ResponseBody
     public Map<String, ?> postAccessToken(
-        @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client, // client的信息
-        @RequestParam("username") String username,
-        @RequestParam("password") String password,
-        @RequestParam("scope") String scope) throws TokenRequestValidationException {
+            @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client, // client的信息
+            @RequestParam("username") String username,
+            @RequestParam("password") String password,
+            @RequestParam("scope") String scope) throws TokenRequestValidationException {
+        if (Objects.isNull(this.userAuthenticationManager)) {
+            throw new TokenRequestValidationException("unsupported_grant_type");
+        }
         try {
             // 验证grant type
             validGrantTypes(client, "password");
@@ -114,8 +117,7 @@ public class TokenEndpoint {
                 throw new TokenRequestValidationException("invalid_request");
             }
         } catch (InvalidScopeException e) {
-            // TODO字符需要查一下
-            throw new TokenRequestValidationException("invalid grant_type");
+            throw new TokenRequestValidationException("invalid_grant");
         }
     }
 
@@ -133,22 +135,22 @@ public class TokenEndpoint {
     @PostMapping(params = {"code", "grant_type=authorization_code"})
     @ResponseBody
     public Map<String, ?> postAccessToken(
-        @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
-        @RequestParam("code") String code,
-        @RequestParam("redirect_uri") String redirectUri,
-        Map<String, String> requestParams) throws TokenRequestValidationException {
+            @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
+            @RequestParam("code") String code,
+            @RequestParam("redirect_uri") String redirectUri,
+            Map<String, String> requestParams) throws TokenRequestValidationException {
         // 使用http basic来验证client，通过AuthorizationServerSecurityConfiguration实现
         // 验证grant type
         validGrantTypes(client, "authorization_code");
         // 验证code
         // 首先验证code是否存在,没有找到指定的授权码信息时报错
         OAuth2Authentication authentication = authorizationCodeService.consume(code)
-            // 验证client是否匹配code所指定的client
-            .filter(auth -> StringUtils.equals(client.getClientId(), auth.getClient().getClientId())
-                // 颁发token时，验证RedirectUri是否匹配
-                // 颁发token时，redirect uri 必须和请求的redirect uri一致
-                && StringUtils.equals(redirectUri, auth.getRequest().getRedirectUri()))
-            .orElseThrow(() -> new TokenRequestValidationException("invalid_grant"));
+                // 验证client是否匹配code所指定的client
+                .filter(auth -> StringUtils.equals(client.getClientId(), auth.getClient().getClientId())
+                        // 颁发token时，验证RedirectUri是否匹配
+                        // 颁发token时，redirect uri 必须和请求的redirect uri一致
+                        && StringUtils.equals(redirectUri, auth.getRequest().getRedirectUri()))
+                .orElseThrow(() -> new TokenRequestValidationException("invalid_grant"));
         Map<String, String> additionalParameters = authentication.getRequest().getAdditionalParameters();
         // 根据请求进行pkce校验
         validPkce(additionalParameters, requestParams);
@@ -173,15 +175,15 @@ public class TokenEndpoint {
     @PostMapping(params = {"grant_type=refresh_token"})
     @ResponseBody
     public Map<String, ?> refreshToken(
-        @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
-        @RequestParam("refresh_token") String refreshToken,
-        @RequestParam(value = "scope", required = false) String scope
+            @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
+            @RequestParam("refresh_token") String refreshToken,
+            @RequestParam(value = "scope", required = false) String scope
     ) throws TokenRequestValidationException {
 
         List<String> requestScopes = Optional.ofNullable(scope)
-            .map(v -> v.split(SPACE_REGEX))
-            .map(Arrays::asList)
-            .orElseGet(Collections::emptyList);
+                .map(v -> v.split(SPACE_REGEX))
+                .map(Arrays::asList)
+                .orElseGet(Collections::emptyList);
         // 对token进行预检，如果检测失败，抛出异常
         try {
             OAuth2ServerAccessToken accessToken = tokenService.refreshAccessToken(refreshToken, client, requestScopes);
@@ -226,7 +228,8 @@ public class TokenEndpoint {
     }
 
     /**
-     * revoke a token
+     * revoke a token<br>
+     * 废除一token,可以是access token,也可以是refresh token
      *
      * @param token         要移除的token的值
      * @param tokenTypeHint tokenTypeHint
@@ -236,11 +239,12 @@ public class TokenEndpoint {
      */
     @PostMapping("revoke")
     public void revoke(
-        @RequestParam("token") String token,
-        @RequestParam("token_type_hint") String tokenTypeHint,
-        @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client) {
+            @RequestParam("token") String token,
+            @RequestParam("token_type_hint") String tokenTypeHint,
+            @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client) {
         // TODO 需要支持跨域
         // TODO 待实现
+        // 可能抛出 unsupported_token_type 异常
     }
 
     /**
@@ -262,10 +266,8 @@ public class TokenEndpoint {
     private void validGrantTypes(ClientDetails client, @NotNull String grantType) throws TokenRequestValidationException {
         Set<AuthorizationGrantType> grantTypes = client.getAuthorizedGrantTypes();
         if (grantTypes.stream().map(AuthorizationGrantType::getValue)
-            .noneMatch(grantType::equals)) {
+                .noneMatch(grantType::equals)) {
             throw new TokenRequestValidationException("unauthorized_client");
         }
     }
-
-
 }

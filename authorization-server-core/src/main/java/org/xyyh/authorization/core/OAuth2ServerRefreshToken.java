@@ -20,6 +20,8 @@ public interface OAuth2ServerRefreshToken extends Serializable {
  * @see org.springframework.security.oauth2.core.OAuth2RefreshToken
  */
 class DefaultOAuth2ServerRefreshToken extends AbstractOAuth2Token implements OAuth2ServerRefreshToken {
+    private static final long serialVersionUID = 6160931455353253429L;
+
     /**
      * Constructs an {@code OAuth2RefreshToken} using the provided parameters.
      *

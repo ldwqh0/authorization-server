@@ -32,8 +32,8 @@ public final class OAuth2AccessTokenUtils {
         result.put("token_type", accessToken.getTokenType().getValue());
         result.put("expires_in", expiresIn);
         accessToken.getRefreshToken()
-            .map(OAuth2ServerRefreshToken::getTokenValue)
-            .ifPresent(value -> result.put("refresh_token", value));
+                .map(OAuth2ServerRefreshToken::getTokenValue)
+                .ifPresent(value -> result.put("refresh_token", value));
         return result;
     }
 

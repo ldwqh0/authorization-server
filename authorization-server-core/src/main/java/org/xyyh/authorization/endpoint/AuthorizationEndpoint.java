@@ -72,11 +72,11 @@ public class AuthorizationEndpoint {
      */
     @RequestMapping
     public ModelAndView authorize(
-        WebRequest request,
-        Map<String, Object> model,
-        @RequestParam MultiValueMap<String, String> params,
-        @AuthenticationPrincipal Authentication userAuthentication,
-        SessionStatus sessionStatus) throws OpenidRequestValidationException {
+            WebRequest request,
+            Map<String, Object> model,
+            @RequestParam MultiValueMap<String, String> params,
+            @AuthenticationPrincipal Authentication userAuthentication,
+            SessionStatus sessionStatus) throws OpenidRequestValidationException {
         OpenidAuthorizationRequest authorizationRequest = OpenidAuthorizationRequest.of(request.getContextPath(), params);
         try {
             // 加载client信息
@@ -91,10 +91,10 @@ public class AuthorizationEndpoint {
             if (client.isAutoApproval()) {
                 sessionStatus.setComplete();
                 return new ModelAndView(getAuthorizationSuccessRedirectView(
-                    authorizationRequest,
-                    ApprovalResult.of(authorizationRequest.getScopes(), authorizationRequest.getRedirectUri()),
-                    client,
-                    userAuthentication)
+                        authorizationRequest,
+                        ApprovalResult.of(authorizationRequest.getScopes(), authorizationRequest.getRedirectUri()),
+                        client,
+                        userAuthentication)
                 );
             } else {
                 ApprovalResult preResult = userApprovalHandler.preCheck(authorizationRequest, userAuthentication);
@@ -135,11 +135,11 @@ public class AuthorizationEndpoint {
      */
     @PostMapping(params = {USER_OAUTH_APPROVAL})
     public View approveOrDeny(
-        @RequestParam Map<String, String> approvalParameters,
-        @SessionAttribute(OAUTH2_AUTHORIZATION_CLIENT) ClientDetails client,
-        @SessionAttribute(OAUTH2_AUTHORIZATION_REQUEST) OpenidAuthorizationRequest authorizationRequest,
-        @AuthenticationPrincipal Authentication userAuthentication,
-        SessionStatus sessionStatus) throws OpenidRequestValidationException {
+            @RequestParam Map<String, String> approvalParameters,
+            @SessionAttribute(OAUTH2_AUTHORIZATION_CLIENT) ClientDetails client,
+            @SessionAttribute(OAUTH2_AUTHORIZATION_REQUEST) OpenidAuthorizationRequest authorizationRequest,
+            @AuthenticationPrincipal Authentication userAuthentication,
+            SessionStatus sessionStatus) throws OpenidRequestValidationException {
         // 当提交用户授权信息之后，将session标记为完成
         sessionStatus.setComplete();
         // 获取用户授权结果
@@ -214,9 +214,9 @@ public class AuthorizationEndpoint {
      * @see @see <a target="_blank" href="https://tools.ietf.org/html/rfc7636">Proof Key for Code Exchange by OAuth Public Clients</a>
      */
     private View getCodeFlowResponse(
-        OpenidAuthorizationRequest request,
-        ApprovalResult result,
-        Authentication userAuthentication, ClientDetails client) {
+            OpenidAuthorizationRequest request,
+            ApprovalResult result,
+            Authentication userAuthentication, ClientDetails client) {
         Map<String, String> query = new LinkedHashMap<>();
         String state = request.getState();
         if (StringUtils.isNotEmpty(state)) {

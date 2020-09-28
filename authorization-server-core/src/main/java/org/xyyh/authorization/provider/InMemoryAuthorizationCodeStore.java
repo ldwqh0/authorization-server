@@ -28,7 +28,7 @@ public class InMemoryAuthorizationCodeStore implements OAuth2AuthorizationCodeSt
         OAuth2AuthorizationCode authorizationCode = codeRepository.remove(code);
         OAuth2Authentication authentication = authenticationRepository.remove(code);
         if (!Objects.isNull(authorizationCode) && !Objects.isNull(authentication)
-            && Instant.now().isBefore(authorizationCode.getExpiresAt())
+                && Instant.now().isBefore(authorizationCode.getExpiresAt())
         ) {
             return Optional.of(authentication);
         } else {

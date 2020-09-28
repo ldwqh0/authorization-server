@@ -26,8 +26,8 @@ public class AuthorizationServerSecurityConfiguration extends WebSecurityConfigu
     protected void configure(HttpSecurity http) throws Exception {
         http.requestMatchers().antMatchers("/oauth2/token", "/oauth2/certs", "/oauth2/token/introspection");
         http.authorizeRequests()
-            .antMatchers("/oauth2/certs").permitAll()
-            .anyRequest().authenticated();
+                .antMatchers("/oauth2/certs").permitAll()
+                .anyRequest().authenticated();
         http.formLogin().disable();
         // 根据rfc6749,如果客户端验证未通过，应用返回401和WWW-Authenticate header
         http.httpBasic();
@@ -41,7 +41,7 @@ public class AuthorizationServerSecurityConfiguration extends WebSecurityConfigu
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(new ClientDetailsUserDetailsService(clientDetailsService))
-            .passwordEncoder(passwordEncoder());
+                .passwordEncoder(passwordEncoder());
     }
 
     private PasswordEncoder passwordEncoder() {

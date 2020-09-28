@@ -16,7 +16,7 @@ public class UserInfoController {
      * 返回用户的信息， 用户信息可以包含<a href=
      * "https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims">https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims</a>所列的标准字段<br>
      * 也可以返回自定义字段
-     * 
+     *
      * @return
      */
     @GetMapping

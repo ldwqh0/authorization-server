@@ -51,9 +51,9 @@ public class InMemoryRefreshTokenStore implements OAuth2RefreshTokenStore {
     @Override
     public Optional<OAuth2ServerRefreshToken> findByAccessToken(String accessToken) {
         return accessTokenRepository.entrySet().stream()
-            .filter(entry -> entry.getValue().equals(accessToken))
-            .findAny()
-            .map(Map.Entry::getKey)
-            .map(tokenRepository::get);
+                .filter(entry -> entry.getValue().equals(accessToken))
+                .findAny()
+                .map(Map.Entry::getKey)
+                .map(tokenRepository::get);
     }
 }

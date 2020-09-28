@@ -67,7 +67,7 @@ class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     @Override
     public boolean isAuthenticated() {
         return this.approvalResult.isApproved()
-            && (Objects.isNull(userAuthentication) || userAuthentication.isAuthenticated());
+                && (Objects.isNull(userAuthentication) || userAuthentication.isAuthenticated());
     }
 
     public boolean isClientOnly() {
@@ -108,13 +108,13 @@ class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     @Override
     public Object getPrincipal() {
         return this.userAuthentication == null ? this.client
-            : this.userAuthentication.getPrincipal();
+                : this.userAuthentication.getPrincipal();
     }
 
     @Override
     public String getName() {
         return Objects.isNull(this.userAuthentication) ? this.request.getClientId()
-            : this.userAuthentication.getName();
+                : this.userAuthentication.getName();
     }
 
     @Override
@@ -150,7 +150,7 @@ class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     @Override
     public void eraseCredentials() {
         if (this.userAuthentication != null
-            && CredentialsContainer.class.isAssignableFrom(this.userAuthentication.getClass())) {
+                && CredentialsContainer.class.isAssignableFrom(this.userAuthentication.getClass())) {
             ((CredentialsContainer) this.userAuthentication).eraseCredentials();
         }
     }

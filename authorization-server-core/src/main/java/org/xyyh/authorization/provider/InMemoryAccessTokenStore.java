@@ -38,12 +38,12 @@ public class InMemoryAccessTokenStore implements OAuth2AccessTokenStore {
         OAuth2Authentication authentication = this.tokenValue2AuthenticationRepository.remove(token);
         OAuth2ServerAccessToken accessToken = this.tokenValue2AccessTokenRepository.remove(token);
         Optional.ofNullable(authentication)
-            .map(this::extractAuthenticationKey)
-            .ifPresent(authentication2AccessTokenRepository::remove);
+                .map(this::extractAuthenticationKey)
+                .ifPresent(authentication2AccessTokenRepository::remove);
         Optional.ofNullable(accessToken)
-            .flatMap(OAuth2ServerAccessToken::getRefreshToken)
-            .map(OAuth2ServerRefreshToken::getTokenValue)
-            .ifPresent(refreshToken2AccessTokenRepository::remove);
+                .flatMap(OAuth2ServerAccessToken::getRefreshToken)
+                .map(OAuth2ServerRefreshToken::getTokenValue)
+                .ifPresent(refreshToken2AccessTokenRepository::remove);
     }
 
     @Override
@@ -54,8 +54,8 @@ public class InMemoryAccessTokenStore implements OAuth2AccessTokenStore {
         this.tokenValue2AccessTokenRepository.put(tokenKey, accessToken);
         this.authentication2AccessTokenRepository.put(authenticationKey, accessToken);
         accessToken.getRefreshToken()
-            .map(OAuth2ServerRefreshToken::getTokenValue)
-            .ifPresent(refreshToken -> this.refreshToken2AccessTokenRepository.put(refreshToken, tokenKey));
+                .map(OAuth2ServerRefreshToken::getTokenValue)
+                .ifPresent(refreshToken -> this.refreshToken2AccessTokenRepository.put(refreshToken, tokenKey));
         return accessToken;
     }
 
@@ -78,8 +78,8 @@ public class InMemoryAccessTokenStore implements OAuth2AccessTokenStore {
     @Override
     public Optional<OAuth2Authentication> loadAuthenticationByRefreshToken(String refreshToken) {
         return Optional.ofNullable(refreshToken)
-            .map(this.refreshToken2AccessTokenRepository::get)
-            .map(this.tokenValue2AuthenticationRepository::get);
+                .map(this.refreshToken2AccessTokenRepository::get)
+                .map(this.tokenValue2AuthenticationRepository::get);
     }
 
     @Override
