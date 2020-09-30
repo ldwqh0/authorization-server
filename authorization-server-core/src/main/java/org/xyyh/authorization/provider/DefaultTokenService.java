@@ -91,7 +91,7 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
             Authentication user = new PreAuthenticatedAuthenticationToken(preAuthentication, preAuthentication.getAuthorities());
             user = preProviderManager.authenticate(user);
             // 创建一个新的OAuth2Authentication
-            OAuth2Authentication authentication = OAuth2Authentication.of(preAuthentication.getRequest(), ApprovalResult.empty(scopeToUse), client, user);
+            OAuth2Authentication authentication = OAuth2Authentication.of(preAuthentication.getRequest(), ApprovalResult.of(scopeToUse), client, user);
             // 删除之前的access token
             accessTokenStore.deleteByRefreshToken(internRefreshTokenValue);
             // 创建一个新的token

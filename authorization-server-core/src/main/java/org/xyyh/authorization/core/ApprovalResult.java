@@ -33,22 +33,22 @@ public interface ApprovalResult extends Serializable {
     ZonedDateTime getExpireAt();
 
     static ApprovalResult empty() {
-        return empty(Collections.emptySet(), Collections.emptySet());
+        return of(Collections.emptySet(), Collections.emptySet());
     }
 
-    static ApprovalResult empty(Set<String> scopes) {
-        return empty(scopes, Collections.emptySet());
+    static ApprovalResult of(Set<String> scopes) {
+        return of(scopes, Collections.emptySet());
     }
 
-    static ApprovalResult empty(Set<String> scopes, Set<String> redirectUris) {
+    static ApprovalResult of(Set<String> scopes, Set<String> redirectUris) {
         return new DefaultApprovalResult(scopes, redirectUris);
     }
 
-    static ApprovalResult empty(Set<String> scopes, String... redirectUris) {
+    static ApprovalResult of(Set<String> scopes, String... redirectUris) {
         return new DefaultApprovalResult(scopes, hashSet(redirectUris));
     }
 
-    static ApprovalResult empty(Set<String> scopes, Set<String> redirectUris, ZonedDateTime expireAt) {
+    static ApprovalResult of(Set<String> scopes, Set<String> redirectUris, ZonedDateTime expireAt) {
         return new DefaultApprovalResult(scopes, redirectUris, expireAt);
     }
 

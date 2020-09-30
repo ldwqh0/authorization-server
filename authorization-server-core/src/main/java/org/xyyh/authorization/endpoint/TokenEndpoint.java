@@ -108,7 +108,7 @@ public class TokenEndpoint {
             // 如果用户授权失败
             if (user.isAuthenticated()) {
                 // 构建授权结果
-                ApprovalResult approvalResult = ApprovalResult.empty(scopes);
+                ApprovalResult approvalResult = ApprovalResult.of(scopes);
                 OAuth2Authentication authentication = OAuth2Authentication.of(approvalResult, client, user);
                 // 生成并保存token
                 OAuth2ServerAccessToken accessToken = tokenService.createAccessToken(authentication);

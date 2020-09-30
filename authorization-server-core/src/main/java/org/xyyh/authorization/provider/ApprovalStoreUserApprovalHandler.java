@@ -39,7 +39,7 @@ public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler
             ApprovalResult preResult = savedResult.get();
             if (preResult.getExpireAt().isAfter(ZonedDateTime.now())) {
                 if (preResult.getScopes().containsAll(requestScopes) && preResult.getRedirectUris().contains(requestRedirectUri)) {
-                    return ApprovalResult.empty(requestScopes, requestRedirectUri);
+                    return ApprovalResult.of(requestScopes, requestRedirectUri);
                 }
             } else {
                 this.approvalStoreService.delete(username, clientId);

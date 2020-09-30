@@ -90,7 +90,7 @@ public class InMemoryApprovalStore implements ApprovalResultStore {
         }
 
         public ApprovalResult toApprovalResult() {
-            return ApprovalResult.empty(hashSet(scopes), hashSet(redirectUris));
+            return ApprovalResult.of(hashSet(scopes), hashSet(redirectUris));
         }
     }
 }

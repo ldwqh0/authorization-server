@@ -35,7 +35,7 @@ public class DefaultUserApprovalHandler implements UserApprovalHandler {
                 approvedScopes.add(requestScope);
             }
         }
-        return ApprovalResult.empty(approvedScopes, request.getRedirectUri());
+        return ApprovalResult.of(approvedScopes, request.getRedirectUri());
     }
 
     @Override

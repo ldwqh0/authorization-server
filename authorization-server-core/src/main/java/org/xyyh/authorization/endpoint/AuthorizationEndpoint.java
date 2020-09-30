@@ -97,7 +97,7 @@ public class AuthorizationEndpoint {
                 sessionStatus.setComplete();
                 return new ModelAndView(getAuthorizationSuccessRedirectView(
                     authorizationRequest,
-                    ApprovalResult.empty(authorizationRequest.getScopes(), authorizationRequest.getRedirectUri()),
+                    ApprovalResult.of(authorizationRequest.getScopes(), authorizationRequest.getRedirectUri()),
                     client,
                     userAuthentication)
                 );
