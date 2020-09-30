@@ -91,7 +91,7 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
             Authentication user = new PreAuthenticatedAuthenticationToken(preAuthentication, preAuthentication.getAuthorities());
             user = preProviderManager.authenticate(user);
             // 创建一个新的OAuth2Authentication
-            OAuth2Authentication authentication = OAuth2Authentication.of(preAuthentication.getRequest(), ApprovalResult.of(scopeToUse), client, user);
+            OAuth2Authentication authentication = OAuth2Authentication.of(preAuthentication.getRequest(), ApprovalResult.empty(scopeToUse), client, user);
             // 删除之前的access token
             accessTokenStore.deleteByRefreshToken(internRefreshTokenValue);
             // 创建一个新的token
@@ -108,6 +108,7 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
 
     @Override
     public Optional<OAuth2ServerAccessToken> readAccessToken(String accessToken) {
+        // TODO 这里处理过期
         return accessTokenStore.getAccessToken(accessToken);
     }
 
@@ -125,12 +126,12 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
         Instant issuedAt = Instant.now();
         Integer accessTokenValiditySeconds = Optional.ofNullable(client.getAccessTokenValiditySeconds()).orElse(defaultAccessTokenValiditySeconds);
         Instant expiresAt = issuedAt.plus(accessTokenValiditySeconds, ChronoUnit.SECONDS);
-        String tokenValue = stringGenerator.generateKey();
+        String tokenId = stringGenerator.generateKey();
         OAuth2ServerRefreshToken refreshToken = null;
         if (isSupportRefreshToken(client)) {
             refreshToken = generateRefreshToken(client);
         }
-        return OAuth2ServerAccessToken.of(OAuth2AccessToken.TokenType.BEARER, tokenValue, issuedAt, expiresAt, scopes, refreshToken);
+        return OAuth2ServerAccessToken.of(tokenId, OAuth2AccessToken.TokenType.BEARER, tokenId, issuedAt, expiresAt, scopes, refreshToken);
     }
 
     private OAuth2ServerRefreshToken generateRefreshToken(ClientDetails client) {

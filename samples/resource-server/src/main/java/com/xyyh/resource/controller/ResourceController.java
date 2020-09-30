@@ -10,9 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ResourceController {
 
     @GetMapping
-    public String get(@AuthenticationPrincipal Object b) {
-        System.out.println(b);
-        return "success";
+    public Object get(@AuthenticationPrincipal Object user) {
+        System.out.println("检测到请求" + user);
+        return user;
     }
-
 }

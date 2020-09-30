@@ -18,10 +18,10 @@ import org.xyyh.authorization.client.ClientDetails;
 import org.xyyh.authorization.client.ClientDetailsService;
 import org.xyyh.authorization.collect.Maps;
 import org.xyyh.authorization.core.*;
+import org.xyyh.authorization.endpoint.converter.AccessTokenConverter;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationFlow;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 import org.xyyh.authorization.exception.*;
-import org.xyyh.authorization.utils.OAuth2AccessTokenUtils;
 
 import java.time.Instant;
 import java.util.Base64;
@@ -51,16 +51,21 @@ public class AuthorizationEndpoint {
 
     private final OAuth2AuthorizationServerTokenServices tokenServices;
 
+
+    private final AccessTokenConverter accessTokenConverter;
+
     public AuthorizationEndpoint(ClientDetailsService clientDetailsService,
                                  OAuth2AuthorizationRequestValidator requestValidator,
                                  UserApprovalHandler userApprovalHandler,
                                  OAuth2AuthorizationCodeStore authorizationCodeService,
-                                 OAuth2AuthorizationServerTokenServices tokenServices) {
+                                 OAuth2AuthorizationServerTokenServices tokenServices,
+                                 AccessTokenConverter accessTokenConverter) {
         this.clientDetailsService = clientDetailsService;
         this.oAuth2RequestValidator = requestValidator;
         this.userApprovalHandler = userApprovalHandler;
         this.authorizationCodeStorageService = authorizationCodeService;
         this.tokenServices = tokenServices;
+        this.accessTokenConverter = accessTokenConverter;
     }
 
     /**
@@ -72,11 +77,11 @@ public class AuthorizationEndpoint {
      */
     @RequestMapping
     public ModelAndView authorize(
-            WebRequest request,
-            Map<String, Object> model,
-            @RequestParam MultiValueMap<String, String> params,
-            @AuthenticationPrincipal Authentication userAuthentication,
-            SessionStatus sessionStatus) throws OpenidRequestValidationException {
+        WebRequest request,
+        Map<String, Object> model,
+        @RequestParam MultiValueMap<String, String> params,
+        @AuthenticationPrincipal Authentication userAuthentication,
+        SessionStatus sessionStatus) throws OpenidRequestValidationException {
         OpenidAuthorizationRequest authorizationRequest = OpenidAuthorizationRequest.of(request.getContextPath(), params);
         try {
             // 加载client信息
@@ -91,10 +96,10 @@ public class AuthorizationEndpoint {
             if (client.isAutoApproval()) {
                 sessionStatus.setComplete();
                 return new ModelAndView(getAuthorizationSuccessRedirectView(
-                        authorizationRequest,
-                        ApprovalResult.of(authorizationRequest.getScopes(), authorizationRequest.getRedirectUri()),
-                        client,
-                        userAuthentication)
+                    authorizationRequest,
+                    ApprovalResult.empty(authorizationRequest.getScopes(), authorizationRequest.getRedirectUri()),
+                    client,
+                    userAuthentication)
                 );
             } else {
                 ApprovalResult preResult = userApprovalHandler.preCheck(authorizationRequest, userAuthentication);
@@ -135,11 +140,11 @@ public class AuthorizationEndpoint {
      */
     @PostMapping(params = {USER_OAUTH_APPROVAL})
     public View approveOrDeny(
-            @RequestParam Map<String, String> approvalParameters,
-            @SessionAttribute(OAUTH2_AUTHORIZATION_CLIENT) ClientDetails client,
-            @SessionAttribute(OAUTH2_AUTHORIZATION_REQUEST) OpenidAuthorizationRequest authorizationRequest,
-            @AuthenticationPrincipal Authentication userAuthentication,
-            SessionStatus sessionStatus) throws OpenidRequestValidationException {
+        @RequestParam Map<String, String> approvalParameters,
+        @SessionAttribute(OAUTH2_AUTHORIZATION_CLIENT) ClientDetails client,
+        @SessionAttribute(OAUTH2_AUTHORIZATION_REQUEST) OpenidAuthorizationRequest authorizationRequest,
+        @AuthenticationPrincipal Authentication userAuthentication,
+        SessionStatus sessionStatus) throws OpenidRequestValidationException {
         // 当提交用户授权信息之后，将session标记为完成
         sessionStatus.setComplete();
         // 获取用户授权结果
@@ -194,7 +199,8 @@ public class AuthorizationEndpoint {
                                          Authentication userAuthentication) {
         OAuth2Authentication authentication = OAuth2Authentication.of(request, result, client, userAuthentication);
         OAuth2ServerAccessToken accessToken = tokenServices.createAccessToken(authentication);
-        Map<String, Object> fragment = OAuth2AccessTokenUtils.converterToken2Map(accessToken);
+
+        Map<String, Object> fragment = accessTokenConverter.toAccessTokenResponse(accessToken);
         String state = request.getState();
         if (StringUtils.isNotBlank(state)) {
             fragment.put("state", state);
@@ -214,9 +220,9 @@ public class AuthorizationEndpoint {
      * @see @see <a target="_blank" href="https://tools.ietf.org/html/rfc7636">Proof Key for Code Exchange by OAuth Public Clients</a>
      */
     private View getCodeFlowResponse(
-            OpenidAuthorizationRequest request,
-            ApprovalResult result,
-            Authentication userAuthentication, ClientDetails client) {
+        OpenidAuthorizationRequest request,
+        ApprovalResult result,
+        Authentication userAuthentication, ClientDetails client) {
         Map<String, String> query = new LinkedHashMap<>();
         String state = request.getState();
         if (StringUtils.isNotEmpty(state)) {

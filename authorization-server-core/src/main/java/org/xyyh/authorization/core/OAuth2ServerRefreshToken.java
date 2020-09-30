@@ -5,7 +5,7 @@ import org.springframework.security.oauth2.core.AbstractOAuth2Token;
 import java.io.Serializable;
 import java.time.Instant;
 
-public interface OAuth2ServerRefreshToken extends Serializable {
+public interface OAuth2ServerRefreshToken extends OAuth2ServerToken, Serializable {
     String getTokenValue();
 
     static OAuth2ServerRefreshToken of(String tokenValue, Instant issuedAt, Instant expiresAt) {

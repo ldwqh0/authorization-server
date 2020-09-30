@@ -21,7 +21,7 @@ public class DefaultUserApprovalHandler implements UserApprovalHandler {
     @Override
     public ApprovalResult preCheck(OpenidAuthorizationRequest request, Authentication authentication) {
         // 返回一个默认结果，默认结果为未授权
-        return ApprovalResult.of();
+        return ApprovalResult.empty();
     }
 
     @Override
@@ -35,7 +35,7 @@ public class DefaultUserApprovalHandler implements UserApprovalHandler {
                 approvedScopes.add(requestScope);
             }
         }
-        return ApprovalResult.of(approvedScopes, request.getRedirectUri());
+        return ApprovalResult.empty(approvedScopes, request.getRedirectUri());
     }
 
     @Override

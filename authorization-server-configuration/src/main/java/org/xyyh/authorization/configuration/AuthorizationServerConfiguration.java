@@ -15,6 +15,8 @@ import org.xyyh.authorization.endpoint.AuthorizationEndpoint;
 import org.xyyh.authorization.endpoint.JWKSetEndpoint;
 import org.xyyh.authorization.endpoint.TokenEndpoint;
 import org.xyyh.authorization.endpoint.TokenIntrospectionEndpoint;
+import org.xyyh.authorization.endpoint.converter.AccessTokenConverter;
+import org.xyyh.authorization.endpoint.converter.DefaultAccessTokenConverter;
 import org.xyyh.authorization.provider.*;
 
 @Configuration
@@ -30,27 +32,27 @@ public class AuthorizationServerConfiguration {
                                                        OAuth2AuthorizationRequestValidator oAuth2RequestValidator,
                                                        UserApprovalHandler userApprovalHandler,
                                                        OAuth2AuthorizationCodeStore authorizationCodeService,
-                                                       OAuth2AccessTokenStore accessTokenService,
-                                                       OAuth2AuthorizationServerTokenServices tokenServices) {
+                                                       OAuth2AuthorizationServerTokenServices tokenServices,
+                                                       AccessTokenConverter accessTokenConverter) {
         return new AuthorizationEndpoint(
-                clientDetailsService,
-                oAuth2RequestValidator,
-                userApprovalHandler,
-                authorizationCodeService,
-                tokenServices);
+            clientDetailsService,
+            oAuth2RequestValidator,
+            userApprovalHandler,
+            authorizationCodeService,
+            tokenServices,
+            accessTokenConverter);
     }
 
     @Bean
     public TokenEndpoint tokenEndpoint(OAuth2AuthorizationCodeStore authorizationCodeService,
-                                       OAuth2RefreshTokenStore refreshTokenStorageService,
                                        PkceValidator pkceValidator,
                                        OAuth2AuthorizationServerTokenServices tokenService,
-                                       OAuth2RequestScopeValidator requestScopeValidator) {
+                                       OAuth2RequestScopeValidator requestScopeValidator,
+                                       AccessTokenConverter accessTokenConverter) {
         return new TokenEndpoint(authorizationCodeService,
-                refreshTokenStorageService,
-                tokenService,
-                requestScopeValidator,
-                pkceValidator);
+            tokenService,
+            accessTokenConverter, requestScopeValidator,
+            pkceValidator);
     }
 
     @Bean
@@ -59,8 +61,8 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    public TokenIntrospectionEndpoint tokenIntrospectionEndpoint() {
-        return new TokenIntrospectionEndpoint();
+    public TokenIntrospectionEndpoint tokenIntrospectionEndpoint(AccessTokenConverter accessTokenConverter) {
+        return new TokenIntrospectionEndpoint(accessTokenConverter);
     }
 
     /**
@@ -91,12 +93,6 @@ public class AuthorizationServerConfiguration {
     @ConditionalOnMissingBean(OAuth2AuthorizationCodeStore.class)
     public OAuth2AuthorizationCodeStore oAuth2AuthorizationCodeService() {
         return new InMemoryAuthorizationCodeStore();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(OAuth2RefreshTokenStore.class)
-    public OAuth2RefreshTokenStore refreshTokenStorageService() {
-        return new InMemoryRefreshTokenStore();
     }
 
     @Bean
@@ -134,14 +130,20 @@ public class AuthorizationServerConfiguration {
     @ConditionalOnMissingBean(PkceValidator.class)
     public PkceValidator pkceValidator() {
         return new CompositePkceValidator(
-                new PlainPkceValidator(),
-                new S256PkceValidator()
+            new PlainPkceValidator(),
+            new S256PkceValidator()
         );
     }
 
     @Bean
     @ConditionalOnMissingBean({OAuth2AuthorizationServerTokenServices.class, OAuth2ResourceServerTokenServices.class})
-    public DefaultTokenService tokenService(OAuth2AccessTokenStore tokenStorageService, OAuth2RefreshTokenStore refreshTokenStore) {
+    public DefaultTokenService tokenService(OAuth2AccessTokenStore tokenStorageService) {
         return new DefaultTokenService(tokenStorageService);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(AccessTokenConverter.class)
+    public AccessTokenConverter accessTokenConverter() {
+        return new DefaultAccessTokenConverter();
     }
 }

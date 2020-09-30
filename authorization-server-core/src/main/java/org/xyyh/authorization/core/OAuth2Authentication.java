@@ -16,7 +16,6 @@ import java.util.Set;
  */
 public interface OAuth2Authentication extends Authentication, CredentialsContainer {
 
-
     /**
      * the {@link ClientDetails}
      */
@@ -42,8 +41,8 @@ public interface OAuth2Authentication extends Authentication, CredentialsContain
     static OAuth2Authentication of(OpenidAuthorizationRequest request,
                                    ApprovalResult result,
                                    ClientDetails client,
-                                   Authentication userAuthentication) {
-        return new DefaultOAuth2AuthenticationToken(request, result, client, userAuthentication);
+                                   Authentication user) {
+        return new DefaultOAuth2AuthenticationToken(request, result, client, user);
     }
 
 }
@@ -67,7 +66,7 @@ class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     @Override
     public boolean isAuthenticated() {
         return this.approvalResult.isApproved()
-                && (Objects.isNull(userAuthentication) || userAuthentication.isAuthenticated());
+            && (Objects.isNull(userAuthentication) || userAuthentication.isAuthenticated());
     }
 
     public boolean isClientOnly() {
@@ -77,18 +76,18 @@ class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     /**
      * 使用指定的信息构建一个 {@link OAuth2Authentication}
      *
-     * @param request            授权请求
-     * @param result             授权结果
-     * @param client             client信息
-     * @param userAuthentication 用户信息
+     * @param request 授权请求
+     * @param result  授权结果
+     * @param client  client信息
+     * @param user    用户信息
      */
     public DefaultOAuth2AuthenticationToken(OpenidAuthorizationRequest request,
                                             ApprovalResult result,
                                             ClientDetails client,
-                                            Authentication userAuthentication) {
+                                            Authentication user) {
         this.client = client;
         this.approvalResult = result;
-        this.userAuthentication = userAuthentication;
+        this.userAuthentication = user;
         this.request = request;
     }
 
@@ -108,13 +107,13 @@ class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     @Override
     public Object getPrincipal() {
         return this.userAuthentication == null ? this.client
-                : this.userAuthentication.getPrincipal();
+            : this.userAuthentication.getPrincipal();
     }
 
     @Override
     public String getName() {
         return Objects.isNull(this.userAuthentication) ? this.request.getClientId()
-                : this.userAuthentication.getName();
+            : this.userAuthentication.getName();
     }
 
     @Override
@@ -150,7 +149,7 @@ class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
     @Override
     public void eraseCredentials() {
         if (this.userAuthentication != null
-                && CredentialsContainer.class.isAssignableFrom(this.userAuthentication.getClass())) {
+            && CredentialsContainer.class.isAssignableFrom(this.userAuthentication.getClass())) {
             ((CredentialsContainer) this.userAuthentication).eraseCredentials();
         }
     }
