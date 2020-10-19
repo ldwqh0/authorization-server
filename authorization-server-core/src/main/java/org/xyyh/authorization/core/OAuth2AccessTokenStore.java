@@ -33,6 +33,14 @@ public interface OAuth2AccessTokenStore {
     Optional<OAuth2ServerAccessToken> getAccessToken(String accessToken);
 
     /**
+     * 根据refresh token值获取refresh token
+     *
+     * @param refreshToken
+     * @return
+     */
+    Optional<OAuth2ServerRefreshToken> getRefreshToken(String refreshToken);
+
+    /**
      * 根据{@link OAuth2Authentication}获取{@link OAuth2ServerAccessToken}<br>
      * 根据name,clientId,scope来确认authentication的唯一性
      *

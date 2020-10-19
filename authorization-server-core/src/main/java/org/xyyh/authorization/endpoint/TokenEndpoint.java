@@ -38,7 +38,7 @@ public class TokenEndpoint {
 
     private AuthenticationManager userAuthenticationManager;
 
-    private final OAuth2AuthorizationServerTokenServices tokenService;
+    private final OAuth2AuthorizationServerTokenService tokenService;
 
     private final AccessTokenConverter accessTokenConverter;
 
@@ -47,7 +47,7 @@ public class TokenEndpoint {
     private final PkceValidator pkceValidator;
 
     public TokenEndpoint(OAuth2AuthorizationCodeStore authorizationCodeService,
-                         OAuth2AuthorizationServerTokenServices tokenService,
+                         OAuth2AuthorizationServerTokenService tokenService,
                          AccessTokenConverter accessTokenConverter,
                          OAuth2RequestScopeValidator scopeValidator,
                          PkceValidator pkceValidator) {
@@ -70,7 +70,7 @@ public class TokenEndpoint {
      */
     @GetMapping
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    // 暂不支持get请求
+    // 暂不支持get请求u
     public Map<String, ?> getAccessToken(
         Authentication principal,
         @RequestParam("grant_type") String grantType,
@@ -159,11 +159,6 @@ public class TokenEndpoint {
         OAuth2ServerAccessToken accessToken = tokenService.createAccessToken(authentication);
         // TODO 需要处理openid
         return accessTokenConverter.toAccessTokenResponse(accessToken);
-
-//        Map<String, Object> response = OAuth2AccessTokenUtils.converterToAccessTokenResponse(accessToken);
-        // 返回 refresh_token
-//        return response;
-//        return addRefreshToken(response, client, authentication, accessToken.getTokenValue());
     }
 
 
@@ -181,7 +176,6 @@ public class TokenEndpoint {
         @RequestParam("refresh_token") String refreshToken,
         @RequestParam(value = "scope", required = false) String scope
     ) throws TokenRequestValidationException {
-
         List<String> requestScopes = Optional.ofNullable(scope)
             .map(v -> v.split(SPACE_REGEX))
             .map(Arrays::asList)
@@ -190,8 +184,6 @@ public class TokenEndpoint {
         try {
             OAuth2ServerAccessToken accessToken = tokenService.refreshAccessToken(refreshToken, client, requestScopes);
             return accessTokenConverter.toAccessTokenResponse(accessToken);
-//            Map<String, Object> response = OAuth2AccessTokenUtils.converterToAccessTokenResponse(accessToken);
-//            return response;
         } catch (RefreshTokenValidationException ex) {
             throw new TokenRequestValidationException("invalid_grant");
         }

@@ -19,7 +19,7 @@ import java.util.*;
 
 import static org.xyyh.authorization.collect.Sets.hashSet;
 
-public class DefaultTokenService implements OAuth2AuthorizationServerTokenServices, OAuth2ResourceServerTokenServices {
+public class DefaultTokenService implements OAuth2AuthorizationServerTokenService, OAuth2ResourceServerTokenService {
 
     private Integer defaultAccessTokenValiditySeconds = 3600;
     private Integer defaultRefreshTokenValiditySeconds = 7200;
@@ -70,11 +70,11 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
     public OAuth2ServerAccessToken refreshAccessToken(String refreshToken, ClientDetails client, Collection<String> requestScopes) throws RefreshTokenValidationException {
         final String internRefreshTokenValue = refreshToken.intern();
         // 对token进行预检，如果检测失败，抛出异常
-        accessTokenStore.loadAuthenticationByRefreshToken(refreshToken).orElseThrow(RefreshTokenValidationException::new);
+        loadAuthenticationByRefreshToken(refreshToken).orElseThrow(RefreshTokenValidationException::new);
         // 同一时刻，针对用一个refresh token,有且仅有一个线程可以读取某个refresh token的相关信息
         synchronized (internRefreshTokenValue) {
             // 进行双重检查
-            OAuth2Authentication preAuthentication = accessTokenStore.loadAuthenticationByRefreshToken(refreshToken).orElseThrow(RefreshTokenValidationException::new);
+            OAuth2Authentication preAuthentication = loadAuthenticationByRefreshToken(refreshToken).orElseThrow(RefreshTokenValidationException::new);
             // 验证传入的refresh token是否发布给该client
             if (!Objects.equals(preAuthentication.getClient().getClientId(), client.getClientId())) {
                 throw new RefreshTokenValidationException("client validate failure");
@@ -103,13 +103,23 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
 
     @Override
     public Optional<OAuth2Authentication> loadAuthentication(String accessToken) {
-        return accessTokenStore.loadAuthentication(accessToken);
+        return accessTokenStore
+            .getAccessToken(accessToken)
+            .map(OAuth2ServerToken::getTokenValue)
+            .flatMap(accessTokenStore::loadAuthentication);
     }
+
 
     @Override
     public Optional<OAuth2ServerAccessToken> readAccessToken(String accessToken) {
-        // TODO 这里处理过期
         return accessTokenStore.getAccessToken(accessToken);
+    }
+
+    private Optional<OAuth2Authentication> loadAuthenticationByRefreshToken(String refreshToken) {
+        return accessTokenStore
+            .getRefreshToken(refreshToken)
+            .map(OAuth2ServerRefreshToken::getTokenValue)
+            .flatMap(accessTokenStore::loadAuthenticationByRefreshToken);
     }
 
     /**
@@ -141,4 +151,5 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
         String tokenValue = stringGenerator.generateKey();
         return OAuth2ServerRefreshToken.of(tokenValue, issuedAt, expiresAt);
     }
+
 }

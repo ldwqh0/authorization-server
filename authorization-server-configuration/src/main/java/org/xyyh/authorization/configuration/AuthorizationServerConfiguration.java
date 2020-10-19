@@ -32,7 +32,7 @@ public class AuthorizationServerConfiguration {
                                                        OAuth2AuthorizationRequestValidator oAuth2RequestValidator,
                                                        UserApprovalHandler userApprovalHandler,
                                                        OAuth2AuthorizationCodeStore authorizationCodeService,
-                                                       OAuth2AuthorizationServerTokenServices tokenServices,
+                                                       OAuth2AuthorizationServerTokenService tokenServices,
                                                        AccessTokenConverter accessTokenConverter) {
         return new AuthorizationEndpoint(
             clientDetailsService,
@@ -46,7 +46,7 @@ public class AuthorizationServerConfiguration {
     @Bean
     public TokenEndpoint tokenEndpoint(OAuth2AuthorizationCodeStore authorizationCodeService,
                                        PkceValidator pkceValidator,
-                                       OAuth2AuthorizationServerTokenServices tokenService,
+                                       OAuth2AuthorizationServerTokenService tokenService,
                                        OAuth2RequestScopeValidator requestScopeValidator,
                                        AccessTokenConverter accessTokenConverter) {
         return new TokenEndpoint(authorizationCodeService,
@@ -61,8 +61,8 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    public TokenIntrospectionEndpoint tokenIntrospectionEndpoint(AccessTokenConverter accessTokenConverter) {
-        return new TokenIntrospectionEndpoint(accessTokenConverter);
+    public TokenIntrospectionEndpoint tokenIntrospectionEndpoint(OAuth2TokenIntrospectionService tokenIntrospectionService) {
+        return new TokenIntrospectionEndpoint(tokenIntrospectionService);
     }
 
     /**
@@ -136,7 +136,7 @@ public class AuthorizationServerConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean({OAuth2AuthorizationServerTokenServices.class, OAuth2ResourceServerTokenServices.class})
+    @ConditionalOnMissingBean({OAuth2AuthorizationServerTokenService.class, OAuth2ResourceServerTokenService.class})
     public DefaultTokenService tokenService(OAuth2AccessTokenStore tokenStorageService) {
         return new DefaultTokenService(tokenStorageService);
     }
@@ -145,5 +145,11 @@ public class AuthorizationServerConfiguration {
     @ConditionalOnMissingBean(AccessTokenConverter.class)
     public AccessTokenConverter accessTokenConverter() {
         return new DefaultAccessTokenConverter();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(OAuth2TokenIntrospectionService.class)
+    public OAuth2TokenIntrospectionService tokenIntrospectionService(OAuth2AccessTokenStore tokenStore, AccessTokenConverter accessTokenConverter) {
+        return new DefaultOAuth2TokenIntrospectionService(tokenStore, accessTokenConverter);
     }
 }

@@ -6,7 +6,7 @@ import org.xyyh.authorization.exception.TokenRequestValidationException;
 
 import java.util.Collection;
 
-public interface OAuth2AuthorizationServerTokenServices {
+public interface OAuth2AuthorizationServerTokenService {
 
     OAuth2ServerAccessToken createAccessToken(OAuth2Authentication authentication);
 

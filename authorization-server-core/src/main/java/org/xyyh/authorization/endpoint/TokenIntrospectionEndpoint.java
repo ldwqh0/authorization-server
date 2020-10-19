@@ -1,12 +1,10 @@
 package org.xyyh.authorization.endpoint;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.xyyh.authorization.core.OAuth2ResourceServerTokenServices;
-import org.xyyh.authorization.endpoint.converter.AccessTokenConverter;
+import org.xyyh.authorization.core.OAuth2TokenIntrospectionService;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,15 +22,12 @@ import java.util.Map;
 @RequestMapping("/oauth2/token/introspection")
 public class TokenIntrospectionEndpoint {
 
-    @Autowired
-    private OAuth2ResourceServerTokenServices accessTokenService;
-
-    private final AccessTokenConverter accessTokenConverter;
+    private final OAuth2TokenIntrospectionService tokenIntrospectionService;
 
     private final Map<String, Object> notExistResponse;
 
-    public TokenIntrospectionEndpoint(AccessTokenConverter accessTokenConverter) {
-        this.accessTokenConverter = accessTokenConverter;
+    public TokenIntrospectionEndpoint(OAuth2TokenIntrospectionService tokenIntrospectionService) {
+        this.tokenIntrospectionService = tokenIntrospectionService;
         Map<String, Object> notExist = new HashMap<>();
         notExist.put("active", Boolean.FALSE);
         this.notExistResponse = Collections.unmodifiableMap(notExist);
@@ -59,9 +54,9 @@ public class TokenIntrospectionEndpoint {
         @RequestParam(value = "token_type_hint", required = false, defaultValue = "access_token") String tokenTypeHint) {
         switch (tokenTypeHint) {
             case "access_token":
-                return inspectAccessToken(token);
+                return tokenIntrospectionService.inspectAccessToken(token).orElse(notExistResponse);
             case "refresh_token":
-                return inspectRefreshToken(token);
+                return tokenIntrospectionService.inspectRefreshToken(token).orElse(notExistResponse);
             default:
 
         }
@@ -69,17 +64,6 @@ public class TokenIntrospectionEndpoint {
         return null;
     }
 
-    private Map<String, Object> inspectAccessToken(String accessTokenValue) {
-        return accessTokenService.readAccessToken(accessTokenValue)
-            .flatMap(token -> accessTokenService.loadAuthentication(accessTokenValue)
-                .map(authentication -> accessTokenConverter.toAccessTokenIntrospectionResponse(token, authentication)))
-            .orElse(notExistResponse);
-    }
-
-    private Map<String, Object> inspectRefreshToken(String refreshToken) {
-        //TODO 待实现
-        return null;
-    }
 
     /**
      * 如果请求的accept是application/jwt,返回jwt

@@ -49,8 +49,7 @@ public class AuthorizationEndpoint {
 
     private final OAuth2AuthorizationCodeStore authorizationCodeStorageService;
 
-    private final OAuth2AuthorizationServerTokenServices tokenServices;
-
+    private final OAuth2AuthorizationServerTokenService tokenServices;
 
     private final AccessTokenConverter accessTokenConverter;
 
@@ -58,7 +57,7 @@ public class AuthorizationEndpoint {
                                  OAuth2AuthorizationRequestValidator requestValidator,
                                  UserApprovalHandler userApprovalHandler,
                                  OAuth2AuthorizationCodeStore authorizationCodeService,
-                                 OAuth2AuthorizationServerTokenServices tokenServices,
+                                 OAuth2AuthorizationServerTokenService tokenServices,
                                  AccessTokenConverter accessTokenConverter) {
         this.clientDetailsService = clientDetailsService;
         this.oAuth2RequestValidator = requestValidator;

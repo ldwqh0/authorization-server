@@ -11,7 +11,8 @@ import java.util.Set;
  * Server端的access token定义
  */
 public interface OAuth2ServerAccessToken extends OAuth2ServerToken, Serializable {
-    public String getId();
+
+    String getId();
 
     OAuth2AccessToken.TokenType getTokenType();
 
