@@ -1,3 +1,7 @@
+## 版本历史
+* 2.0.0 升级到spring boot 2.4.2的版本
+* 1.0.0 第一个稳定版本
+
 ## 项目说明
 这是一个针对OAuth2的实现
 随着spring-security-oauth项目的过期，好像不太好找开源的oauth2,openid 服务了。

@@ -7,6 +7,7 @@ public final class CollectionUtils {
 
     }
 
+    @SafeVarargs
     public static <T> boolean containsAny(final Collection<?> coll1, final T... coll2) {
         if (coll1.size() < coll2.length) {
             for (final Object aColl1 : coll1) {

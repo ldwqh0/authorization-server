@@ -11,6 +11,7 @@ public final class Sets {
     private Sets() {
     }
 
+    @SafeVarargs
     public static <K> HashSet<K> hashSet(K... values) {
         return new HashSet<>(Arrays.asList(values));
     }
@@ -28,6 +29,7 @@ public final class Sets {
         return in.stream().map(converter).collect(Collectors.toSet());
     }
 
+    @SafeVarargs
     public static <K> Set<K> merge(Set<K> origin, K... e) {
         HashSet<K> result = hashSet(origin);
         if (e != null) {

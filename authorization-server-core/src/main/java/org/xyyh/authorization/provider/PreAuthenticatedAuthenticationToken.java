@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Collection;
 
 public class PreAuthenticatedAuthenticationToken extends AbstractAuthenticationToken {
+    private static final long serialVersionUID = -5103231704382259801L;
     private final Object principal;
 
     public PreAuthenticatedAuthenticationToken(Object principal, Collection<? extends GrantedAuthority> authorities) {

@@ -1,9 +1,7 @@
 package org.xyyh.authorization.endpoint.request;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
-import org.springframework.util.Assert;
 import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;

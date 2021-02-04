@@ -1,12 +1,12 @@
 package org.xyyh.authorization.endpoint;
 
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.nimbusds.jose.jwk.JWKSet;
-
-import net.minidev.json.JSONObject;
 
 /**
  * JWK set endpoint
@@ -24,7 +24,7 @@ public class JWKSetEndpoint {
 
     @GetMapping
     @ResponseBody
-    public JSONObject get() {
+    public Map<String, Object> get() {
         return keySet.toPublicJWKSet().toJSONObject();
     }
 }
