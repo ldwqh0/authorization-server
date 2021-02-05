@@ -79,7 +79,7 @@ public class AuthorizationEndpoint {
         WebRequest request,
         Map<String, Object> model,
         @RequestParam MultiValueMap<String, String> params,
-        @AuthenticationPrincipal Authentication userAuthentication,
+        Authentication userAuthentication,
         SessionStatus sessionStatus) throws OpenidRequestValidationException {
         OpenidAuthorizationRequest authorizationRequest = OpenidAuthorizationRequest.of(request.getContextPath(), params);
         try {
