@@ -79,7 +79,7 @@ public class AuthorizationEndpoint {
         WebRequest request,
         Map<String, Object> model,
         @RequestParam MultiValueMap<String, String> params,
-        @AuthenticationPrincipal Authentication userAuthentication,
+        Authentication userAuthentication,
         SessionStatus sessionStatus) throws OpenidRequestValidationException {
         OpenidAuthorizationRequest authorizationRequest = OpenidAuthorizationRequest.of(request.getContextPath(), params);
         try {
@@ -142,7 +142,7 @@ public class AuthorizationEndpoint {
         @RequestParam Map<String, String> approvalParameters,
         @SessionAttribute(OAUTH2_AUTHORIZATION_CLIENT) ClientDetails client,
         @SessionAttribute(OAUTH2_AUTHORIZATION_REQUEST) OpenidAuthorizationRequest authorizationRequest,
-        @AuthenticationPrincipal Authentication userAuthentication,
+        Authentication userAuthentication,
         SessionStatus sessionStatus) throws OpenidRequestValidationException {
         // 当提交用户授权信息之后，将session标记为完成
         sessionStatus.setComplete();
