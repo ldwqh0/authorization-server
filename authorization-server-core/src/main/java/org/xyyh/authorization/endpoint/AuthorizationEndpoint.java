@@ -3,7 +3,6 @@ package org.xyyh.authorization.endpoint;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
 import org.springframework.util.MultiValueMap;
@@ -142,7 +141,7 @@ public class AuthorizationEndpoint {
         @RequestParam Map<String, String> approvalParameters,
         @SessionAttribute(OAUTH2_AUTHORIZATION_CLIENT) ClientDetails client,
         @SessionAttribute(OAUTH2_AUTHORIZATION_REQUEST) OpenidAuthorizationRequest authorizationRequest,
-        @AuthenticationPrincipal Authentication userAuthentication,
+        Authentication userAuthentication,
         SessionStatus sessionStatus) throws OpenidRequestValidationException {
         // 当提交用户授权信息之后，将session标记为完成
         sessionStatus.setComplete();
