@@ -7,7 +7,7 @@
   <version>2.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <properties>
-    <java.version>11</java.version>
+    <java.version>1.8</java.version>
     <springboot.version>2.4.2</springboot.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
