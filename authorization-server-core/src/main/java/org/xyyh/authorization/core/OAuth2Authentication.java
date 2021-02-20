@@ -7,6 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.xyyh.authorization.client.ClientDetails;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
@@ -19,7 +20,7 @@ public interface OAuth2Authentication extends Authentication, CredentialsContain
     /**
      * the {@link ClientDetails}
      */
-    ClientDetails getClient();
+    @NotNull ClientDetails getClient();
 
     /**
      * the authorized scopes
@@ -83,7 +84,7 @@ class DefaultOAuth2AuthenticationToken implements OAuth2Authentication {
      */
     public DefaultOAuth2AuthenticationToken(OpenidAuthorizationRequest request,
                                             ApprovalResult result,
-                                            ClientDetails client,
+                                            @NotNull ClientDetails client,
                                             Authentication user) {
         this.client = client;
         this.approvalResult = result;
