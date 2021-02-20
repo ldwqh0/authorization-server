@@ -50,19 +50,16 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
     }
 
     @Override
-    public OAuth2ServerAccessToken createAccessToken(OAuth2Authentication authentication) {
-        OAuth2ServerAccessToken existingAccessToken = accessTokenStore.getAccessToken(authentication).orElse(null);
-        if (existingAccessToken != null) {
-            if (Instant.now().isAfter(existingAccessToken.getExpiresAt())) {
-                accessTokenStore.delete(existingAccessToken.getTokenValue());
-            } else {
-                // Re-store the access token in case the authentication has changed
-                accessTokenStore.save(existingAccessToken, authentication);
-                return existingAccessToken;
-            }
-        }
-        ClientDetails client = authentication.getClient();
-        OAuth2ServerAccessToken accessToken = generateAccessToken(client, authentication.getScopes());
+    public OAuth2ServerAccessToken createAccessToken(final OAuth2Authentication authentication) {
+        OAuth2ServerAccessToken accessToken = accessTokenStore.getAccessToken(authentication)
+            .map(existingAccessToken -> {
+                if (Instant.now().isAfter(existingAccessToken.getExpiresAt())) {
+                    accessTokenStore.delete(existingAccessToken.getTokenValue());
+                    return generateAccessToken(authentication.getClient(), authentication.getScopes());
+                } else {
+                    return existingAccessToken;
+                }
+            }).orElseGet(() -> generateAccessToken(authentication.getClient(), authentication.getScopes()));
         return accessTokenStore.save(accessToken, authentication);
     }
 

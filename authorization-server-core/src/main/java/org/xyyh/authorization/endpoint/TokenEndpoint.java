@@ -66,16 +66,12 @@ public class TokenEndpoint {
     /**
      * 不支持 get请求获取token,返回415状态码
      *
-     * @return
+     * @return an empty {@link Map}
      */
     @GetMapping
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
     // 暂不支持get请求u
-    public Map<String, ?> getAccessToken(
-        Authentication principal,
-        @RequestParam("grant_type") String grantType,
-        @RequestParam("code") String code,
-        @RequestParam("redirect_uri") String redirectUri) {
+    public Map<String, ?> getAccessToken() {
         return Collections.emptyMap();
     }
 
@@ -127,11 +123,9 @@ public class TokenEndpoint {
      * 授权码模式的授权请求
      *
      * @param client      连接信息
-     * @param code        授权码
      * @param redirectUri 重定向uri
      * @return accessToken信息
-     * @see <a href=
-     * "https://tools.ietf.org/html/rfc6749#section-4.1">https://tools.ietf.org/html/rfc6749#section-4.1</a>
+     * @see <a href="https://tools.ietf.org/html/rfc6749#section-4.1">https://tools.ietf.org/html/rfc6749#section-4.1</a>
      */
     @PostMapping(params = {"code", "grant_type=authorization_code"})
     @ResponseBody

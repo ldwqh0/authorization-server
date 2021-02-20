@@ -31,7 +31,7 @@ public class ClientDetailsUserDetailsService implements UserDetailsService {
 
 }
 
-class ClientUserDetails implements CredentialsContainer, UserDetails {
+class ClientUserDetails implements UserDetails, CredentialsContainer {
 
     private static final long serialVersionUID = -4968552547785149722L;
     private final ClientDetails clientDetails;
@@ -46,6 +46,7 @@ class ClientUserDetails implements CredentialsContainer, UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        // TODO　这里带扩展，后期不应该有空的Authorities
         return Collections.emptyList();
     }
 
@@ -81,6 +82,6 @@ class ClientUserDetails implements CredentialsContainer, UserDetails {
 
     @Override
     public void eraseCredentials() {
-        // TODO 这里需要处理
+        // TODO 对于client的密码是否需要擦除，暂时不处理
     }
 }
