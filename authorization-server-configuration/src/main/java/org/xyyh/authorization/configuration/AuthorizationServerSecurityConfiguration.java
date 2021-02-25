@@ -28,9 +28,8 @@ public class AuthorizationServerSecurityConfiguration extends WebSecurityConfigu
         http.authorizeRequests()
             .antMatchers("/oauth2/certs").permitAll()
             .anyRequest().fullyAuthenticated();
-        http.formLogin().disable();
         // 根据rfc6749,如果客户端验证未通过，应用返回401和WWW-Authenticate header
-        http.httpBasic();
+        http.formLogin().disable().httpBasic();
         // 使用NullSecurityContextRepository,防止将相关的安全信息写入Session或者其它地方
         // 否则在同一浏览器环境下测试，会造成client的安全上下文和user的安全上下文混乱
         http.securityContext().securityContextRepository(new NullSecurityContextRepository());
