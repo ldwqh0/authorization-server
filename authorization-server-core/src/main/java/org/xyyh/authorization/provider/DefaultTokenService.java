@@ -85,8 +85,9 @@ public class DefaultTokenService implements OAuth2AuthorizationServerTokenServic
                 scopeToUse = hashSet(requestScopes);
             }
             // 使用refreshToken时,需要重新加载用户的信息
-            Authentication user = new PreAuthenticatedAuthenticationToken(preAuthentication, preAuthentication.getAuthorities());
-            user = preProviderManager.authenticate(user);
+            PreAuthenticatedAuthenticationToken preToken = new PreAuthenticatedAuthenticationToken(preAuthentication, preAuthentication.getAuthorities());
+            // TODO details 需要处理,暂时没有向Authentication中setDetails 根据贵州，应该设置一些来自请求的信息，比如请求ip啥的，参考spring的登录请求
+            Authentication user = preProviderManager.authenticate(preToken);
             // 创建一个新的OAuth2Authentication
             OAuth2Authentication authentication = OAuth2Authentication.of(preAuthentication.getRequest(), ApprovalResult.of(scopeToUse), client, user);
             // 删除之前的access token

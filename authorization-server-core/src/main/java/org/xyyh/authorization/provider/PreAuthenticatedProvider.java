@@ -26,9 +26,9 @@ public class PreAuthenticatedProvider implements AuthenticationProvider {
         String username = authentication.getName();
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         userChecker.check(userDetails);
-        PreAuthenticatedAuthenticationToken result = new PreAuthenticatedAuthenticationToken(username, userDetails.getAuthorities());
+        PreAuthenticatedAuthenticationToken result = new PreAuthenticatedAuthenticationToken(userDetails, userDetails.getAuthorities());
         result.setAuthenticated(true);
-        result.setDetails(userDetails);
+        result.setDetails(authentication.getDetails());
         return result;
     }
 
