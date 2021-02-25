@@ -11,7 +11,6 @@ public class TestController {
 
     @GetMapping
     public String test(@AuthenticationPrincipal Object principal) {
-        System.out.println(principal);
         return "test";
     }
 }

@@ -171,7 +171,6 @@ public class TokenEndpoint {
         @RequestParam("refresh_token") String refreshToken,
         @RequestParam(value = "scope", required = false) String scope
     ) throws TokenRequestValidationException {
-        System.out.println(authentication);
         List<String> requestScopes = Optional.ofNullable(scope)
             .map(v -> v.split(SPACE_REGEX))
             .map(Arrays::asList)

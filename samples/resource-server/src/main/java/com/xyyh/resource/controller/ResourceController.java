@@ -11,7 +11,6 @@ public class ResourceController {
 
     @GetMapping
     public Object get(@AuthenticationPrincipal Object user) {
-        System.out.println("检测到请求" + user);
         return user;
     }
 }
