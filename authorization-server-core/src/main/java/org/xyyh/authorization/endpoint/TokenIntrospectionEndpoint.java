@@ -60,7 +60,7 @@ public class TokenIntrospectionEndpoint {
             default:
 
         }
-        // TODO 这里待处理
+        // TODO 这里待处理,不正确的参数应该响应为400
         return null;
     }
 
