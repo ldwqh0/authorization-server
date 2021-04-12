@@ -84,7 +84,6 @@ public class AuthorizationEndpoint {
         try {
             // 加载client信息
             ClientDetails client = clientDetailsService.loadClientByClientId(authorizationRequest.getClientId());
-
             // 对请求进行检验，并抛出相应的异常
             oAuth2RequestValidator.validate(authorizationRequest, client);
 
