@@ -124,30 +124,44 @@ public class OpenidAuthorizationRequest implements Serializable {
      * @return 授权请求
      */
     public static OpenidAuthorizationRequest of(String uri, MultiValueMap<String, String> parameters) {
-        Map<String, String> additionalParameters = new HashMap<>();
-        parameters.entrySet().stream()
-                .filter(e -> !e.getKey().equals(OAuth2ParameterNames.RESPONSE_TYPE) &&
-                        !e.getKey().equals(OAuth2ParameterNames.CLIENT_ID) &&
-                        !e.getKey().equals(OAuth2ParameterNames.REDIRECT_URI) &&
-                        !e.getKey().equals(OAuth2ParameterNames.SCOPE) &&
-                        !e.getKey().equals(OAuth2ParameterNames.STATE))
-                .forEach(e -> additionalParameters.put(e.getKey(), e.getValue().get(0)));
-        Set<String> scopes = parameters.get(OAuth2ParameterNames.SCOPE)
-                .stream().flatMap(v -> Arrays.stream(v.split(SPACE_REGEX)))
+        Map<String, String> additionalParameters =
+            parameters.entrySet().stream()
+                .filter(parameter -> isNotAuthorizationRequestParam(parameter.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue().get(0)));
+        List<String> scopeParams = parameters.get(OAuth2ParameterNames.SCOPE);
+        Set<String> scopes;
+        if (null == scopeParams) {
+            scopes = Collections.emptySet();
+        } else {
+            scopes = parameters.get(OAuth2ParameterNames.SCOPE)
+                .stream()
+                .map(v -> v.split(SPACE_REGEX))
+                .flatMap(Arrays::stream)
                 .collect(Collectors.toSet());
+        }
         Set<String> responseTypes = parameters.get(OAuth2ParameterNames.RESPONSE_TYPE)
-                .stream().flatMap(v -> Arrays.stream(v.split(SPACE_REGEX)))
-                .collect(Collectors.toSet());
+            .stream()
+            .map(v -> v.split(SPACE_REGEX))
+            .flatMap(Arrays::stream)
+            .collect(Collectors.toSet());
         return new OpenidAuthorizationRequest(
-                responseTypes,
-                null,
-                parameters.getFirst(OAuth2ParameterNames.CLIENT_ID),
-                parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI),
-                scopes,
-                parameters.getFirst(OAuth2ParameterNames.STATE),
-                additionalParameters,
-                uri,
-                Collections.emptyMap()
+            responseTypes,
+            null,
+            parameters.getFirst(OAuth2ParameterNames.CLIENT_ID),
+            parameters.getFirst(OAuth2ParameterNames.REDIRECT_URI),
+            scopes,
+            parameters.getFirst(OAuth2ParameterNames.STATE),
+            additionalParameters,
+            uri,
+            Collections.emptyMap()
         );
+    }
+
+    private static boolean isNotAuthorizationRequestParam(String param) {
+        return !(OAuth2ParameterNames.RESPONSE_TYPE.equals(param) ||
+            OAuth2ParameterNames.CLIENT_ID.equals(param) ||
+            OAuth2ParameterNames.REDIRECT_URI.equals(param) ||
+            OAuth2ParameterNames.SCOPE.equals(param) ||
+            OAuth2ParameterNames.STATE.equals(param));
     }
 }

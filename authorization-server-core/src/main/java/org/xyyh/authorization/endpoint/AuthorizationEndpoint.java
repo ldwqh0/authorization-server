@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
 import org.springframework.security.crypto.keygen.StringKeyGenerator;
+import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
@@ -73,7 +74,7 @@ public class AuthorizationEndpoint {
      * @param sessionStatus sessionStatus
      * @return 授权页面模型和视图
      */
-    @RequestMapping
+    @RequestMapping(params = {OAuth2ParameterNames.RESPONSE_TYPE, OAuth2ParameterNames.CLIENT_ID})
     public ModelAndView authorize(
         WebRequest request,
         Map<String, Object> model,
@@ -87,9 +88,7 @@ public class AuthorizationEndpoint {
             // 对请求进行检验，并抛出相应的异常
             oAuth2RequestValidator.validate(authorizationRequest, client);
 
-            /**
-             * 如果应用配置为直接通过授权
-             */
+            // 如果应用配置为直接通过授权
             if (client.isAutoApproval()) {
                 sessionStatus.setComplete();
                 return new ModelAndView(getAuthorizationSuccessRedirectView(
