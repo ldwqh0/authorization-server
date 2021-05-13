@@ -2,6 +2,7 @@ package org.xyyh.authorization.endpoint.request;
 
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;
@@ -36,7 +37,7 @@ public class OpenidAuthorizationRequest implements Serializable {
     private final String redirectUri;
     private final Set<String> scopes;
     private final String state;
-    private final Map<String, String> additionalParameters;
+    private final MultiValueMap<String, String> additionalParameters;
     private final String authorizationRequestUri;
     private final Map<String, Object> attributes;
 
@@ -46,7 +47,7 @@ public class OpenidAuthorizationRequest implements Serializable {
                                        String redirectUri,
                                        Set<String> scopes,
                                        String state,
-                                       Map<String, String> additionalParameters,
+                                       MultiValueMap<String, String> additionalParameters,
                                        String authorizationRequestUri,
                                        Map<String, Object> attributes) {
         this.responseTypes = hashSet(responseTypes);
@@ -56,7 +57,7 @@ public class OpenidAuthorizationRequest implements Serializable {
         this.redirectUri = redirectUri;
         this.scopes = hashSet(scopes);
         this.state = state;
-        this.additionalParameters = hashMap(additionalParameters);
+        this.additionalParameters = additionalParameters;
         this.authorizationRequestUri = authorizationRequestUri;
         this.attributes = hashMap(attributes);
     }
@@ -104,8 +105,8 @@ public class OpenidAuthorizationRequest implements Serializable {
         return state;
     }
 
-    public Map<String, String> getAdditionalParameters() {
-        return Collections.unmodifiableMap(additionalParameters);
+    public MultiValueMap<String, String> getAdditionalParameters() {
+        return additionalParameters;
     }
 
     public String getAuthorizationRequestUri() {
@@ -124,10 +125,9 @@ public class OpenidAuthorizationRequest implements Serializable {
      * @return 授权请求
      */
     public static OpenidAuthorizationRequest of(String uri, MultiValueMap<String, String> parameters) {
-        Map<String, String> additionalParameters =
-            parameters.entrySet().stream()
-                .filter(parameter -> isNotAuthorizationRequestParam(parameter.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue().get(0)));
+        LinkedMultiValueMap<String, String> additionalParameters = new LinkedMultiValueMap<>();
+        parameters.keySet().stream().filter(OpenidAuthorizationRequest::isNotAuthorizationRequestParam)
+            .forEach(key -> additionalParameters.put(key, parameters.get(key)));
         List<String> scopeParams = parameters.get(OAuth2ParameterNames.SCOPE);
         Set<String> scopes;
         if (null == scopeParams) {

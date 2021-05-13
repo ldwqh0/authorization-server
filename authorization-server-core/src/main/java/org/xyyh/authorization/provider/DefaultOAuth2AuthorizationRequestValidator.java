@@ -80,7 +80,7 @@ public class DefaultOAuth2AuthorizationRequestValidator implements OAuth2Authori
      */
     private void validPkceRequest(OpenidAuthorizationRequest request, ClientDetails client) throws OpenidRequestValidationException {
         if (client.isRequirePkce()) {
-            String codeChallenge = request.getAdditionalParameters().get("code_challenge");
+            String codeChallenge = request.getAdditionalParameters().getFirst("code_challenge");
             if (StringUtils.isBlank(codeChallenge)) {
                 throw new OpenidRequestValidationException(request, "invalid_request");
             }

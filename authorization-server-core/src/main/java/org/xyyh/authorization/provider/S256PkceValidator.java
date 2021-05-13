@@ -13,7 +13,7 @@ public class S256PkceValidator implements PkceValidator {
 
     @Override
     public void validate(String codeChallenge, String codeVerifier, String codeChallengeMethod) throws TokenRequestValidationException {
-        if (StringUtils.equalsIgnoreCase(codeChallengeMethod, CODE_CHALLENGE_METHOD_S256)) {
+        if (CODE_CHALLENGE_METHOD_S256.equals(codeChallengeMethod)) {
             if (!StringUtils.equals(codeChallenge, encodeCodeVerifier(codeVerifier))) {
                 throw new TokenRequestValidationException("invalid_grant");
             }

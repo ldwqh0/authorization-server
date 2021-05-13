@@ -48,16 +48,18 @@ public class AuthorizationServerConfiguration {
                                        PkceValidator pkceValidator,
                                        OAuth2AuthorizationServerTokenService tokenService,
                                        OAuth2RequestScopeValidator requestScopeValidator,
-                                       AccessTokenConverter accessTokenConverter) {
+                                       AccessTokenConverter accessTokenConverter) throws JOSEException {
         return new TokenEndpoint(authorizationCodeService,
             tokenService,
             accessTokenConverter, requestScopeValidator,
-            pkceValidator);
+            pkceValidator,
+            jwkSet()
+        );
     }
 
     @Bean
     public JWKSetEndpoint keySetEndpoint() throws JOSEException {
-        return new JWKSetEndpoint(keyset());
+        return new JWKSetEndpoint(jwkSet());
     }
 
     @Bean
@@ -70,7 +72,7 @@ public class AuthorizationServerConfiguration {
      * @throws JOSEException
      */
     @Bean
-    public JWKSet keyset() throws JOSEException {
+    public JWKSet jwkSet() throws JOSEException {
         RSAKey rsaKey = new RSAKeyGenerator(2048).keyID("default-sign").keyUse(KeyUse.SIGNATURE).generate();
         return new JWKSet(rsaKey);
     }

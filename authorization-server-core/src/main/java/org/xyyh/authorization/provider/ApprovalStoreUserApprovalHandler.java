@@ -6,7 +6,6 @@ import org.xyyh.authorization.core.ApprovalResultStore;
 import org.xyyh.authorization.endpoint.request.OpenidAuthorizationRequest;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -34,18 +33,17 @@ public class ApprovalStoreUserApprovalHandler extends DefaultUserApprovalHandler
         final String requestRedirectUri = request.getRedirectUri();
         final String username = user.getName();
         final String clientId = request.getClientId();
-        Optional<ApprovalResult> savedResult = this.approvalStoreService.get(username, clientId);
-        if (savedResult.isPresent()) {
-            ApprovalResult preResult = savedResult.get();
-            if (preResult.getExpireAt().isAfter(ZonedDateTime.now())) {
-                if (preResult.getScopes().containsAll(requestScopes) && preResult.getRedirectUris().contains(requestRedirectUri)) {
-                    return ApprovalResult.of(requestScopes, requestRedirectUri);
+        return this.approvalStoreService.get(username, clientId)
+            .map(preResult -> {
+                if (preResult.getExpireAt().isAfter(ZonedDateTime.now())) {
+                    if (preResult.getScopes().containsAll(requestScopes) && preResult.getRedirectUris().contains(requestRedirectUri)) {
+                        return ApprovalResult.of(requestScopes, requestRedirectUri);
+                    }
+                } else {
+                    this.approvalStoreService.delete(username, clientId);
                 }
-            } else {
-                this.approvalStoreService.delete(username, clientId);
-            }
-        }
-        return ApprovalResult.empty();
+                return ApprovalResult.empty();
+            }).orElseGet(ApprovalResult::empty);
     }
 
     /**

@@ -1,5 +1,6 @@
 package org.xyyh.authorization.endpoint;
 
+import com.nimbusds.jose.jwk.JWKSet;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.xyyh.authorization.client.ClientDetails;
 import org.xyyh.authorization.collect.Maps;
@@ -46,16 +48,20 @@ public class TokenEndpoint {
 
     private final PkceValidator pkceValidator;
 
+    private final JWKSet jwkSet;
+
     public TokenEndpoint(OAuth2AuthorizationCodeStore authorizationCodeService,
                          OAuth2AuthorizationServerTokenService tokenService,
                          AccessTokenConverter accessTokenConverter,
                          OAuth2RequestScopeValidator scopeValidator,
-                         PkceValidator pkceValidator) {
+                         PkceValidator pkceValidator,
+                         JWKSet jwkSet) {
         this.authorizationCodeService = authorizationCodeService;
         this.tokenService = tokenService;
         this.accessTokenConverter = accessTokenConverter;
         this.scopeValidator = scopeValidator;
         this.pkceValidator = pkceValidator;
+        this.jwkSet = jwkSet;
     }
 
     @Autowired(required = false)
@@ -133,7 +139,7 @@ public class TokenEndpoint {
         @AuthenticationPrincipal(expression = "clientDetails") ClientDetails client,
         @RequestParam("code") String code,
         @RequestParam("redirect_uri") String redirectUri,
-        Map<String, String> requestParams) throws TokenRequestValidationException {
+        @RequestParam MultiValueMap<String, String> requestParams) throws TokenRequestValidationException {
         // 使用http basic来验证client，通过AuthorizationServerSecurityConfiguration实现
         // 验证grant type
         validGrantTypes(client, "authorization_code");
@@ -146,12 +152,13 @@ public class TokenEndpoint {
                 // 颁发token时，redirect uri 必须和请求的redirect uri一致
                 && StringUtils.equals(redirectUri, auth.getRequest().getRedirectUri()))
             .orElseThrow(() -> new TokenRequestValidationException("invalid_grant"));
-        Map<String, String> additionalParameters = authentication.getRequest().getAdditionalParameters();
+        MultiValueMap<String, String> additionalParameters = authentication.getRequest().getAdditionalParameters();
         // 根据请求进行pkce校验
         validPkce(additionalParameters, requestParams);
         // 签发token
         OAuth2ServerAccessToken accessToken = tokenService.createAccessToken(authentication);
         // TODO 需要处理openid
+//        authentication.getRequest().getScopes();
         return accessTokenConverter.toAccessTokenResponse(accessToken);
     }
 
@@ -243,11 +250,14 @@ public class TokenEndpoint {
      * @param storeParams 储存的pkce参数
      * @see <a target="_blank" href="https://tools.ietf.org/html/rfc7636">Proof Key for Code Exchange by OAuth Public Clients</a>
      */
-    private void validPkce(Map<String, String> storeParams, Map<String, String> requestParams) throws TokenRequestValidationException {
-        String codeChallenge = storeParams.get("code_challenge");
+    private void validPkce(MultiValueMap<String, String> storeParams, MultiValueMap<String, String> requestParams) throws TokenRequestValidationException {
+        String codeChallenge = storeParams.getFirst("code_challenge");
         if (StringUtils.isNotBlank(codeChallenge)) {
-            String codeChallengeMethod = storeParams.getOrDefault("code_challenge_method", CODE_CHALLENGE_METHOD_PLAIN);
-            String codeVerifier = requestParams.get("code_verifier");
+            String codeChallengeMethod = storeParams.getFirst("code_challenge_method");// storeParams.getOrDefault("code_challenge_method", CODE_CHALLENGE_METHOD_PLAIN);
+            if (StringUtils.isBlank(codeChallengeMethod)) {
+                codeChallengeMethod = CODE_CHALLENGE_METHOD_PLAIN;
+            }
+            String codeVerifier = requestParams.getFirst("code_verifier");
             pkceValidator.validate(codeChallenge, codeVerifier, codeChallengeMethod);
         }
     }
@@ -255,8 +265,7 @@ public class TokenEndpoint {
 
     private void validGrantTypes(ClientDetails client, @NotNull String grantType) throws TokenRequestValidationException {
         Set<AuthorizationGrantType> grantTypes = client.getAuthorizedGrantTypes();
-        if (grantTypes.stream().map(AuthorizationGrantType::getValue)
-            .noneMatch(grantType::equals)) {
+        if (grantTypes.stream().map(AuthorizationGrantType::getValue).noneMatch(grantType::equals)) {
             throw new TokenRequestValidationException("unauthorized_client");
         }
     }
