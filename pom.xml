@@ -18,7 +18,7 @@
     <module>authorization-server-configuration</module>
     <module>authorization-server-spring-boot-starter</module>
     <!--<module>samples/resource-server</module>-->
-    <!--<module>samples/authorization-server</module> -->
+    <!--<module>samples/authorization-server</module>-->
   </modules>
   <dependencyManagement>
     <dependencies>
